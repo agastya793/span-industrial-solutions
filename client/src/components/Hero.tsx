@@ -89,8 +89,8 @@ export const Hero: React.FC<HeroProps> = ({ onExploreServices, onContact }) => {
                 <p>Standardized quality management & operational discipline</p>
               </div>
               <div className="hero-meta-item">
-                <h4>Dual Presence</h4>
-                <p>Offices in Rudrapur (Uttarakhand) and Noida (NCR)</p>
+                <h4>Industrial Hub</h4>
+                <p>Operating from Rudrapur (Uttarakhand)</p>
               </div>
             </div>
           </div>

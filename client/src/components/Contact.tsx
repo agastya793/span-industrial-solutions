@@ -213,7 +213,7 @@ export const Contact: React.FC<ContactProps> = ({ selectedServicePreload }) => {
       setErrors({});
     } catch (err: any) {
       setSubmitError(
-        err.message || 'Network error encountered. Please check your connection or email us directly at sales@spansol.com.'
+        err.message || 'Network error encountered. Please check your connection or email us directly at INFOSPAN.UKD@gmail.com.'
       );
     } finally {
       setIsLoading(false);
@@ -269,7 +269,7 @@ export const Contact: React.FC<ContactProps> = ({ selectedServicePreload }) => {
                   <div className="contact-channel-content">
                     <span className="channel-label">Official Corporate Email</span>
                     <span className="channel-val">
-                      <a href="mailto:sales@spansol.com">sales@spansol.com</a>
+                      <a href="mailto:INFOSPAN.UKD@gmail.com">INFOSPAN.UKD@gmail.com</a>
                     </span>
                   </div>
                 </div>
@@ -280,15 +280,13 @@ export const Contact: React.FC<ContactProps> = ({ selectedServicePreload }) => {
                     <Phone size={18} />
                   </div>
                   <div className="contact-channel-content">
-                    <span className="channel-label">Telephone & Direct Lines</span>
-                    <span className="channel-val">
-                      <a href="tel:01204484500">0120-4484500</a>
-                    </span>
-                    <div style={{ fontSize: '0.85rem', color: '#475569', marginTop: '2px', display: 'flex', flexWrap: 'wrap', gap: '4px 6px' }}>
-                      <span>Mobile:</span>
-                      <a href="tel:9045085537" style={{ color: '#0b2545', fontWeight: 600 }}>9045085537</a>
+                    <span className="channel-label">Direct Contact Lines</span>
+                    <div style={{ fontSize: '0.85rem', color: '#475569', marginTop: '2px', display: 'flex', flexWrap: 'wrap', gap: '4px 8px' }}>
+                      <a href="tel:+919045085537" style={{ color: '#0b2545', fontWeight: 600 }}>+91 90450 85537</a>
                       <span>&bull;</span>
-                      <a href="tel:8449368000" style={{ color: '#0b2545', fontWeight: 600 }}>8449368000</a>
+                      <a href="tel:+918449368000" style={{ color: '#0b2545', fontWeight: 600 }}>+91 84493 68000</a>
+                      <span>&bull;</span>
+                      <a href="tel:+919568799107" style={{ color: '#0b2545', fontWeight: 600 }}>+91 95687 99107</a>
                     </div>
                   </div>
                 </div>
@@ -302,19 +300,6 @@ export const Contact: React.FC<ContactProps> = ({ selectedServicePreload }) => {
                     <span className="channel-label">Uttarakhand Operations</span>
                     <span className="channel-val" style={{ fontSize: '0.875rem', fontWeight: 600 }}>
                       C5 Rampur Road, Preet Vihar, Rudrapur, US Nagar, Uttarakhand - 263153
-                    </span>
-                  </div>
-                </div>
-
-                {/* NCR Location */}
-                <div className="contact-channel-item">
-                  <div className="contact-channel-icon">
-                    <Building2 size={18} />
-                  </div>
-                  <div className="contact-channel-content">
-                    <span className="channel-label">NCR Regional Office</span>
-                    <span className="channel-val" style={{ fontSize: '0.875rem', fontWeight: 600 }}>
-                      2nd Floor, Unit No-E-90, Sector-07, Noida, Uttar Pradesh - 201301
                     </span>
                   </div>
                 </div>

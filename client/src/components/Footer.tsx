@@ -199,28 +199,69 @@ export const Footer: React.FC<FooterProps> = ({ onSelectService }) => {
 
             {/* Col 4: Corporate Offices */}
             <div>
-              <h4 className="footer-col-title">Office Locations</h4>
+              <h4 className="footer-col-title">Office Location</h4>
               <div className="footer-office-item">
                 <strong>Uttarakhand Office:</strong>
                 C5 Rampur Road, Preet Vihar, Rudrapur, US Nagar, Uttarakhand - 263153
               </div>
-              <div className="footer-office-item">
-                <strong>NCR Office:</strong>
-                2nd Floor, Unit No-E-90, Sector-07, Noida, UP - 201301
-              </div>
 
-              <div style={{ marginTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.78rem' }}>
+              <div style={{ marginTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.78rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
                   <Mail size={13} color="#f87171" style={{ flexShrink: 0 }} />
-                  <a href="mailto:sales@spansol.com" style={{ color: '#cbd5e1', wordBreak: 'break-all' }}>sales@spansol.com</a>
+                  <a href="mailto:INFOSPAN.UKD@gmail.com" style={{ color: '#cbd5e1', wordBreak: 'break-all' }}>INFOSPAN.UKD@gmail.com</a>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
                   <Phone size={13} color="#f87171" style={{ flexShrink: 0 }} />
                   <div style={{ color: '#cbd5e1', display: 'flex', flexWrap: 'wrap', gap: '4px 6px' }}>
-                    <a href="tel:01204484500" style={{ color: '#cbd5e1', textDecoration: 'none' }}>0120-4484500</a>
+                    <a href="tel:+919045085537" style={{ color: '#cbd5e1', textDecoration: 'none' }}>+91 90450 85537</a>
                     <span>&bull;</span>
-                    <a href="tel:+919045085537" style={{ color: '#cbd5e1', textDecoration: 'none' }}>9045085537</a>
+                    <a href="tel:+918449368000" style={{ color: '#cbd5e1', textDecoration: 'none' }}>+91 84493 68000</a>
                   </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Contact Our Team Directory */}
+          <div className="footer-team-section" aria-label="Contact Our Team">
+            <h4 className="footer-team-title">Contact Our Team</h4>
+            <div className="footer-team-grid">
+              {/* Contact 1: Aalok Sharma */}
+              <div className="footer-team-card">
+                <div className="footer-team-name">Aalok Sharma</div>
+                <a href="tel:+919045085537" className="footer-team-phone" aria-label="Call Aalok Sharma at +919045085537">
+                  <Phone size={13} style={{ flexShrink: 0 }} />
+                  <span>+919045085537</span>
+                </a>
+                <div className="footer-team-resp">
+                  <span className="footer-team-resp-label">Responsibilities:</span>
+                  <span>Technical Support, Manufacturing Cost Optimization</span>
+                </div>
+              </div>
+
+              {/* Contact 2: Amit Saxena */}
+              <div className="footer-team-card">
+                <div className="footer-team-name">Amit Saxena</div>
+                <a href="tel:+918449368000" className="footer-team-phone" aria-label="Call Amit Saxena at +918449368000">
+                  <Phone size={13} style={{ flexShrink: 0 }} />
+                  <span>+918449368000</span>
+                </a>
+                <div className="footer-team-resp">
+                  <span className="footer-team-resp-label">Responsibilities:</span>
+                  <span>Workforce Solutions, Industrial Training</span>
+                </div>
+              </div>
+
+              {/* Contact 3: Ankit Kumar */}
+              <div className="footer-team-card">
+                <div className="footer-team-name">Ankit Kumar</div>
+                <a href="tel:+919568799107" className="footer-team-phone" aria-label="Call Ankit Kumar at +919568799107">
+                  <Phone size={13} style={{ flexShrink: 0 }} />
+                  <span>+919568799107</span>
+                </a>
+                <div className="footer-team-resp">
+                  <span className="footer-team-resp-label">Responsibilities:</span>
+                  <span>Self pace learning, IT Support</span>
                 </div>
               </div>
             </div>
