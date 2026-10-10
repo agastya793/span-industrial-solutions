@@ -1428,6 +1428,34 @@
   margin-bottom: 2px;
 }
 
+.footer-office-email-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.footer-office-email-link {
+  font-size: var(--font-size-xs);
+  color: #cbd5e1;
+  text-decoration: none;
+  word-break: break-all;
+  transition: color var(--transition-fast), text-decoration-color var(--transition-fast);
+  border-radius: var(--radius-sm);
+}
+
+.footer-office-email-link:hover {
+  color: #ffffff;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.footer-office-email-link:focus-visible {
+  outline: 2px solid #38bdf8;
+  outline-offset: 2px;
+  color: #ffffff;
+}
+
 /* Contact Our Team Directory */
 .footer-team-section {
   padding-top: clamp(1.75rem, 3.5vw, var(--space-8));

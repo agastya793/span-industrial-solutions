@@ -205,19 +205,14 @@ export const Footer: React.FC<FooterProps> = ({ onSelectService }) => {
                 C5 Rampur Road, Preet Vihar, Rudrapur, US Nagar, Uttarakhand - 263153
               </div>
 
-              <div style={{ marginTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.78rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                  <Mail size={13} color="#f87171" style={{ flexShrink: 0 }} />
-                  <a href="mailto:INFOSPAN.UKD@gmail.com" style={{ color: '#cbd5e1', wordBreak: 'break-all' }}>INFOSPAN.UKD@gmail.com</a>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                  <Phone size={13} color="#f87171" style={{ flexShrink: 0 }} />
-                  <div style={{ color: '#cbd5e1', display: 'flex', flexWrap: 'wrap', gap: '4px 6px' }}>
-                    <a href="tel:+919045085537" style={{ color: '#cbd5e1', textDecoration: 'none' }}>+91 90450 85537</a>
-                    <span>&bull;</span>
-                    <a href="tel:+918449368000" style={{ color: '#cbd5e1', textDecoration: 'none' }}>+91 84493 68000</a>
-                  </div>
-                </div>
+              <div className="footer-office-email-wrap">
+                <Mail size={13} color="#f87171" style={{ flexShrink: 0 }} aria-hidden="true" />
+                <a
+                  href="mailto:INFOSPAN.UKD@gmail.com"
+                  className="footer-office-email-link"
+                >
+                  INFOSPAN.UKD@gmail.com
+                </a>
               </div>
             </div>
           </div>
@@ -261,7 +256,7 @@ export const Footer: React.FC<FooterProps> = ({ onSelectService }) => {
                 </a>
                 <div className="footer-team-resp">
                   <span className="footer-team-resp-label">Responsibilities:</span>
-                  <span>Self pace learning, IT Support</span>
+                  <span>Self-Paced Learning, IT Support</span>
                 </div>
               </div>
             </div>
