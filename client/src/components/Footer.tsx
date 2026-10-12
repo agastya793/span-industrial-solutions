@@ -229,7 +229,7 @@ export const Footer: React.FC<FooterProps> = ({ onSelectService }) => {
                   <span>+919045085537</span>
                 </a>
                 <div className="footer-team-resp">
-                  <span className="footer-team-resp-label">Responsibilities:</span>
+                  <span className="footer-team-resp-label">Core Idea:</span>
                   <span>Technical Support, Manufacturing Cost Optimization</span>
                 </div>
               </div>
@@ -242,7 +242,7 @@ export const Footer: React.FC<FooterProps> = ({ onSelectService }) => {
                   <span>+918449368000</span>
                 </a>
                 <div className="footer-team-resp">
-                  <span className="footer-team-resp-label">Responsibilities:</span>
+                  <span className="footer-team-resp-label">Core Idea:</span>
                   <span>Workforce Solutions, Industrial Training</span>
                 </div>
               </div>
@@ -255,7 +255,7 @@ export const Footer: React.FC<FooterProps> = ({ onSelectService }) => {
                   <span>+919568799107</span>
                 </a>
                 <div className="footer-team-resp">
-                  <span className="footer-team-resp-label">Responsibilities:</span>
+                  <span className="footer-team-resp-label">Core Idea:</span>
                   <span>Self-Paced Learning, IT Support</span>
                 </div>
               </div>
