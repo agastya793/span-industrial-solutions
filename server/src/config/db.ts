@@ -142,11 +142,12 @@ export async function initDatabase(): Promise<void> {
         state VARCHAR(100),
         city VARCHAR(100),
         service VARCHAR(100) NOT NULL,
-        message TEXT NOT NULL,
+        message TEXT,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
       ALTER TABLE inquiries ADD COLUMN IF NOT EXISTS state VARCHAR(100);
       ALTER TABLE inquiries ADD COLUMN IF NOT EXISTS city VARCHAR(100);
+      ALTER TABLE inquiries ALTER COLUMN message DROP NOT NULL;
       CREATE INDEX IF NOT EXISTS idx_inquiries_email ON inquiries(email);
       CREATE INDEX IF NOT EXISTS idx_inquiries_service ON inquiries(service);
       CREATE INDEX IF NOT EXISTS idx_inquiries_created_at ON inquiries(created_at DESC);
@@ -189,7 +190,7 @@ export async function insertInquiry(data: InquiryInput): Promise<InquiryRecord> 
         data.state || null,
         data.city || null,
         data.service,
-        data.message,
+        data.message || null,
       ];
       const result = await pool.query(query, values);
       return result.rows[0];
