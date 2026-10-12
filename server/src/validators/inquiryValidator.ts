@@ -9,12 +9,19 @@ export interface ValidationResult {
 function sanitizeString(str: unknown): string {
   if (typeof str !== 'string') return '';
   return str
+    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '') // Remove non-printable control characters
     .trim()
-    .replace(/[<>]/g, ''); // Basic strip of angle brackets for XSS defense
+    .replace(/[<>]/g, ''); // Strip angle brackets to guard against HTML/script injection
 }
 
 export function validateInquiry(input: any): ValidationResult {
   const errors: Record<string, string> = {};
+
+  // Basic spam protection: Honeypot trap check
+  const honeypot = sanitizeString(input?._hp_website || input?.website);
+  if (honeypot) {
+    errors._hp_website = 'Automated submission rejected.';
+  }
 
   const name = sanitizeString(input?.name);
   const company = sanitizeString(input?.company);
@@ -60,12 +67,8 @@ export function validateInquiry(input: any): ValidationResult {
     errors.service = `Invalid service selection. Please choose from: ${INQUIRY_SERVICES.join(', ')}`;
   }
 
-  // Validate Message
-  if (!message) {
-    errors.message = 'Please provide brief details of your requirement.';
-  } else if (message.length < 10) {
-    errors.message = 'Requirement details must be at least 10 characters.';
-  } else if (message.length > 3000) {
+  // Validate Message (optional for simplified form; if provided, must not exceed 3000 chars)
+  if (message && message.length > 3000) {
     errors.message = 'Requirement details cannot exceed 3000 characters.';
   }
 
@@ -83,7 +86,7 @@ export function validateInquiry(input: any): ValidationResult {
           state: sanitizeString(input?.state) || undefined,
           city: sanitizeString(input?.city) || undefined,
           service,
-          message,
+          message: message || undefined,
         }
       : undefined,
   };
