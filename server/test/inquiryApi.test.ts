@@ -7,6 +7,11 @@ import { config } from '../src/config/env.js';
 import inquiryRoutes from '../src/routes/inquiryRoutes.js';
 import healthRoutes from '../src/routes/healthRoutes.js';
 import { inquiryRateLimiter } from '../src/middleware/rateLimiter.js';
+import {
+  generateInquiryEmailHtml,
+  generateInquiryEmailText,
+  sendInquiryNotificationEmail,
+} from '../src/services/emailService.js';
 
 describe('Inquiry API & Database Failure Handling (Real Application Code)', () => {
   let app: express.Express;
@@ -243,7 +248,10 @@ describe('Inquiry API & Database Failure Handling (Real Application Code)', () =
     const jsonEmpty = (await resEmpty.json()) as any;
     assert.strictEqual(jsonEmpty.success, false);
     assert.ok(jsonEmpty.errors.name, 'Validation errors must flag missing name');
+    assert.ok(jsonEmpty.errors.company, 'Validation errors must flag missing company');
     assert.ok(jsonEmpty.errors.email, 'Validation errors must flag missing email');
+    assert.ok(jsonEmpty.errors.phone, 'Validation errors must flag missing phone');
+    assert.ok(jsonEmpty.errors.service, 'Validation errors must flag missing service');
 
     // 6b. Invalid service selection
     const resBadService = await fetch(`${baseUrl}/api/inquiries`, {
@@ -356,6 +364,149 @@ describe('Inquiry API & Database Failure Handling (Real Application Code)', () =
     assert.strictEqual(capturedValues[5], 'Noida');
     assert.strictEqual(capturedValues[6], 'Guaranteed Saving Program');
     assert.ok(capturedValues[7].includes('[Organization Location: Noida, Uttar Pradesh]'));
+  });
+
+  test('Scenario 10: Spam honeypot trap rejects automated bot submissions', async () => {
+    const spamPayload = {
+      ...validPayload,
+      _hp_website: 'https://spam-bot-marketing.example.com',
+    };
+
+    const res = await fetch(`${baseUrl}/api/inquiries`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(spamPayload),
+    });
+
+    assert.strictEqual(res.status, 400, 'Spam submission must be rejected with HTTP 400');
+    const json = (await res.json()) as any;
+    assert.strictEqual(json.success, false);
+    assert.ok(
+      json.message.includes('Automated submission') || json.errors?.form?.includes('Spam'),
+      'Response must indicate spam rejection'
+    );
+  });
+
+  test('Scenario 11: Email templates format visitor details and corporate information properly', () => {
+    const sampleRecord: any = {
+      id: 303,
+      name: 'Anjali Verma',
+      company: 'Tata Motors Pantnagar Vendor Division',
+      email: 'anjali.verma@tatavendor.example.com',
+      phone: '+91 9568799107',
+      state: 'Uttarakhand',
+      city: 'Pantnagar',
+      service: 'Workforce Management Solutions',
+      message: 'Urgent requirement for 50 certified assembly line fitters.',
+      created_at: new Date().toISOString(),
+    };
+
+    const html = generateInquiryEmailHtml(sampleRecord);
+    const text = generateInquiryEmailText(sampleRecord);
+
+    // Verify key fields in HTML
+    assert.ok(html.includes('Anjali Verma'));
+    assert.ok(html.includes('Tata Motors Pantnagar Vendor Division'));
+    assert.ok(html.includes('anjali.verma@tatavendor.example.com'));
+    assert.ok(html.includes('+91 9568799107'));
+    assert.ok(html.includes('Pantnagar, Uttarakhand'));
+    assert.ok(html.includes('Workforce Management Solutions'));
+    assert.ok(html.includes('Urgent requirement for 50 certified assembly line fitters.'));
+    assert.ok(html.includes('INFOSPAN.UKD@gmail.com'));
+
+    // Verify key fields in Plain Text
+    assert.ok(text.includes('Anjali Verma'));
+    assert.ok(text.includes('Tata Motors Pantnagar Vendor Division'));
+    assert.ok(text.includes('anjali.verma@tatavendor.example.com'));
+    assert.ok(text.includes('+91 9568799107'));
+    assert.ok(text.includes('Pantnagar, Uttarakhand'));
+    assert.ok(text.includes('Urgent requirement for 50 certified assembly line fitters.'));
+  });
+
+  test('Scenario 12: Email delivery failure or missing API key is handled gracefully without losing inquiry', async () => {
+    const sampleRecord: any = {
+      id: 404,
+      name: 'Rohan Mehra',
+      company: 'Kumaon Precision Tools',
+      email: 'rohan.mehra@kumaontools.example.com',
+      phone: '+91 9045085537',
+      service: 'Experts Training for Industries',
+      message: 'Need specialized Six Sigma training for 15 quality engineers.',
+      created_at: new Date().toISOString(),
+    };
+
+    // When RESEND_API_KEY is not set
+    const originalKey = config.resendApiKey;
+    config.resendApiKey = '';
+
+    const result = await sendInquiryNotificationEmail(sampleRecord);
+    assert.strictEqual(result.success, false);
+    assert.strictEqual(result.skipped, true);
+    assert.ok(result.error?.includes('RESEND_API_KEY'));
+
+    config.resendApiKey = originalKey;
+  });
+
+  test('Scenario 13: Simplified 5-field corporate inquiry submission succeeds with HTTP 201', async () => {
+    const simplifiedPayload = {
+      name: 'Sunil Kumar',
+      company: 'Himalayan Precision Forgings',
+      email: 'sunil.kumar@himalayanforge.example.com',
+      phone: '+91 9045085537',
+      service: 'Guaranteed Saving Program',
+    };
+
+    const res = await fetch(`${baseUrl}/api/inquiries`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(simplifiedPayload),
+    });
+
+    assert.strictEqual(res.status, 201, 'Simplified submission must return HTTP 201 Created');
+    const json = (await res.json()) as any;
+    assert.strictEqual(json.success, true);
+    assert.strictEqual(json.data.name, 'Sunil Kumar');
+    assert.strictEqual(json.data.company, 'Himalayan Precision Forgings');
+    assert.strictEqual(json.data.email, 'sunil.kumar@himalayanforge.example.com');
+    assert.strictEqual(json.data.service, 'Guaranteed Saving Program');
+  });
+
+  test('Scenario 14: Simplified 5-field email notification omits empty sections and escapes HTML', () => {
+    const simplifiedRecord: any = {
+      id: 505,
+      name: '<script>alert("xss")</script>Vikram Singh',
+      company: 'Pantnagar Auto Parts & Components',
+      email: 'vikram.singh@pantnagarauto.example.com',
+      phone: '+91 9045085537',
+      service: 'Workforce Management Solutions',
+      created_at: new Date().toISOString(),
+    };
+
+    const html = generateInquiryEmailHtml(simplifiedRecord);
+    const text = generateInquiryEmailText(simplifiedRecord);
+
+    // Verify no undefined, null or placeholder artifacts
+    assert.strictEqual(html.includes('undefined'), false, 'HTML must not contain "undefined"');
+    assert.strictEqual(html.includes('null'), false, 'HTML must not contain "null"');
+    assert.strictEqual(text.includes('undefined'), false, 'Text must not contain "undefined"');
+    assert.strictEqual(text.includes('null'), false, 'Text must not contain "null"');
+
+    // Verify omitted optional sections do not produce empty blocks
+    assert.strictEqual(html.includes('Location / Industrial Hub'), false, 'HTML must not show Location row');
+    assert.strictEqual(html.includes('Requirement Details & Message:'), false, 'HTML must not show Requirement Details box');
+    assert.strictEqual(text.includes('Location:'), false, 'Text must not show Location line');
+    assert.strictEqual(text.includes('REQUIREMENT DETAILS'), false, 'Text must not show Requirement Details section');
+
+    // Verify HTML escaping of special characters
+    assert.strictEqual(html.includes('<script>'), false, 'HTML must escape <script> tag');
+    assert.ok(html.includes('&lt;script&gt;'), 'HTML must contain escaped &lt;script&gt;');
+    assert.ok(html.includes('Vikram Singh'), 'HTML must contain visitor name');
+    assert.ok(html.includes('Pantnagar Auto Parts &amp; Components'), 'HTML must escape ampersand');
+
+    // Verify Plain text formatting
+    assert.ok(text.includes('Vikram Singh'));
+    assert.ok(text.includes('Workforce Management Solutions'));
+    assert.ok(text.includes('+91 9045085537'));
   });
 
   test('Scenario 9: Rate limiting threshold triggers HTTP 429 when max requests exceeded', async () => {
