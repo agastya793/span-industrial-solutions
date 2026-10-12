@@ -13,22 +13,6 @@ const CURRENT_YEAR = new Date().getFullYear();
 export const Footer: React.FC<FooterProps> = ({ onSelectService }) => {
   const [isNdaModalOpen, setIsNdaModalOpen] = useState(false);
 
-  const handleScrollToContact = () => {
-    const elem = document.getElementById('contact');
-    if (elem) {
-      const offset = 80;
-      const bodyRect = document.body.getBoundingClientRect().top;
-      const elementRect = elem.getBoundingClientRect().top;
-      const elementPosition = elementRect - bodyRect;
-      const offsetPosition = elementPosition - offset;
-
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: 'smooth',
-      });
-    }
-  };
-
   return (
     <>
       <footer className="footer" role="contentinfo">
@@ -278,10 +262,6 @@ export const Footer: React.FC<FooterProps> = ({ onSelectService }) => {
       <NDAModal
         isOpen={isNdaModalOpen}
         onClose={() => setIsNdaModalOpen(false)}
-        onRequestNDA={() => {
-          setIsNdaModalOpen(false);
-          handleScrollToContact();
-        }}
       />
     </>
   );

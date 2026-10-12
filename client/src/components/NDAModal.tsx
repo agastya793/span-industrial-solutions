@@ -1,17 +1,15 @@
 import React, { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { X, ShieldCheck, Lock, FileText, CheckCircle2, ArrowRight } from 'lucide-react';
+import { X, ShieldCheck, Lock, FileText, CheckCircle2 } from 'lucide-react';
 
 interface NDAModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onRequestNDA?: () => void;
 }
 
 export const NDAModal: React.FC<NDAModalProps> = ({
   isOpen,
   onClose,
-  onRequestNDA,
 }) => {
   const dialogRef = useRef<HTMLDivElement>(null);
 
@@ -225,28 +223,13 @@ export const NDAModal: React.FC<NDAModalProps> = ({
           <span style={{ fontSize: '0.8rem', color: '#64748b' }}>
             Custom bilateral NDA templates available upon request
           </span>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <button
-              type="button"
-              className="btn btn-outline btn-sm"
-              onClick={onClose}
-            >
-              <span>Close</span>
-            </button>
-            <button
-              type="button"
-              className="btn btn-accent btn-sm"
-              onClick={() => {
-                onClose();
-                if (onRequestNDA) {
-                  onRequestNDA();
-                }
-              }}
-            >
-              <span>Request NDA Copy</span>
-              <ArrowRight size={14} />
-            </button>
-          </div>
+          <button
+            type="button"
+            className="btn btn-outline btn-sm"
+            onClick={onClose}
+          >
+            <span>Close</span>
+          </button>
         </div>
       </div>
     </div>,
