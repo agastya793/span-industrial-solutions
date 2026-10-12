@@ -24,4 +24,7 @@ export const config = {
   databaseSsl: process.env.DATABASE_SSL,
   databaseSslCa: process.env.DATABASE_SSL_CA,
   databaseSslRejectUnauthorized: process.env.DATABASE_SSL_REJECT_UNAUTHORIZED,
+  resendApiKey: process.env.RESEND_API_KEY?.trim() || '',
+  resendFromEmail: process.env.RESEND_FROM_EMAIL?.trim() || 'onboarding@resend.dev',
+  resendToEmail: process.env.RESEND_TO_EMAIL?.trim() || 'INFOSPAN.UKD@gmail.com',
 };
