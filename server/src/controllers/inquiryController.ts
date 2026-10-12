@@ -14,6 +14,16 @@ export async function createInquiry(
     const validation = validateInquiry(req.body);
 
     if (!validation.isValid || !validation.sanitizedData) {
+      if (validation.errors._hp_website) {
+        logger.warn('Automated inquiry submission blocked by honeypot filter.');
+        res.status(400).json({
+          success: false,
+          message: 'Automated submission rejected. Please contact us directly if this is an error.',
+          errors: { form: 'Spam submission detected.' },
+        });
+        return;
+      }
+
       res.status(400).json({
         success: false,
         message: 'Please resolve the highlighted errors before submitting.',
