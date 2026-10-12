@@ -21,7 +21,8 @@ export interface InquiryInput {
   state?: string;
   city?: string;
   service: InquiryServiceType;
-  message: string;
+  message?: string;
+  _hp_website?: string;
 }
 
 export interface InquiryRecord extends InquiryInput {

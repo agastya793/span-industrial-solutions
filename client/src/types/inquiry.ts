@@ -10,6 +10,7 @@ export const INQUIRY_SERVICES: readonly InquiryServiceType[] = [
   'Guaranteed Saving Program',
   'Experts Training for Industries',
   'Self-Paced Learning & Video Solutions',
+  'Industrial / Corporate Video Solutions',
 ] as const;
 
 export interface InquiryFormData {
@@ -20,7 +21,8 @@ export interface InquiryFormData {
   state?: string;
   city?: string;
   service: InquiryServiceType;
-  message: string;
+  message?: string;
+  _hp_website?: string;
 }
 
 export interface ApiResponse<T = unknown> {
