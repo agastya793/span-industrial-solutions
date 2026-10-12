@@ -1,4 +1,5 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { X, ShieldCheck, Lock, FileText, CheckCircle2, ArrowRight } from 'lucide-react';
 
 interface NDAModalProps {
@@ -12,6 +13,8 @@ export const NDAModal: React.FC<NDAModalProps> = ({
   onClose,
   onRequestNDA,
 }) => {
+  const dialogRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -19,6 +22,9 @@ export const NDAModal: React.FC<NDAModalProps> = ({
     if (isOpen) {
       document.body.style.overflow = 'hidden';
       window.addEventListener('keydown', handleKeyDown);
+      if (dialogRef.current) {
+        dialogRef.current.scrollTop = 0;
+      }
     }
     return () => {
       document.body.style.overflow = '';
@@ -26,9 +32,9 @@ export const NDAModal: React.FC<NDAModalProps> = ({
     };
   }, [isOpen, onClose]);
 
-  if (!isOpen) return null;
+  if (!isOpen || typeof document === 'undefined') return null;
 
-  return (
+  return createPortal(
     <div
       className="modal-overlay"
       role="dialog"
@@ -37,6 +43,7 @@ export const NDAModal: React.FC<NDAModalProps> = ({
       onClick={onClose}
     >
       <div
+        ref={dialogRef}
         className="modal-dialog"
         style={{ maxWidth: '640px' }}
         onClick={(e) => e.stopPropagation()}
@@ -242,6 +249,7 @@ export const NDAModal: React.FC<NDAModalProps> = ({
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

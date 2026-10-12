@@ -1,4 +1,5 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { X, CheckCircle2, ArrowRight, ShieldCheck } from 'lucide-react';
 import type { InquiryServiceType } from '../types/inquiry';
 
@@ -64,6 +65,8 @@ export const ServiceModal: React.FC<ServiceModalProps> = ({
   onClose,
   onInquire,
 }) => {
+  const dialogRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -71,6 +74,9 @@ export const ServiceModal: React.FC<ServiceModalProps> = ({
     if (service) {
       document.body.style.overflow = 'hidden';
       window.addEventListener('keydown', handleKeyDown);
+      if (dialogRef.current) {
+        dialogRef.current.scrollTop = 0;
+      }
     }
     return () => {
       document.body.style.overflow = '';
@@ -78,12 +84,12 @@ export const ServiceModal: React.FC<ServiceModalProps> = ({
     };
   }, [service, onClose]);
 
-  if (!service) return null;
+  if (!service || typeof document === 'undefined') return null;
 
   const activeBadge = SERVICE_BADGES[service.id];
   const hasSubSections = Boolean(service.subSections && service.subSections.length > 0);
 
-  return (
+  return createPortal(
     <div
       className="modal-overlay"
       role="dialog"
@@ -92,6 +98,7 @@ export const ServiceModal: React.FC<ServiceModalProps> = ({
       onClick={onClose}
     >
       <div
+        ref={dialogRef}
         className="modal-dialog"
         style={{
           maxWidth: hasSubSections ? '740px' : '680px',
@@ -384,6 +391,7 @@ export const ServiceModal: React.FC<ServiceModalProps> = ({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
