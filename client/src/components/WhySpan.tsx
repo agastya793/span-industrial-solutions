@@ -1,34 +1,16 @@
 import React from 'react';
 import {
-  Factory,
-  Wrench,
-  UserCheck,
-  Users,
-  GraduationCap,
   Video,
+  GraduationCap,
+  UserCheck,
 } from 'lucide-react';
 
 export const WhySpan: React.FC = () => {
   const pillars = [
     {
-      icon: <Factory size={22} />,
-      title: 'Dedicated Industrial Focus',
-      desc: 'Our operations, methodologies, and offerings are built exclusively around the genuine requirements of manufacturing and engineering plants.',
-    },
-    {
-      icon: <Wrench size={22} />,
-      title: 'Practical Zero-Capex Solutions',
-      desc: 'Cost-saving tools and process optimizations are designed to generate measurable returns without requiring capital expenditure on new machinery.',
-    },
-    {
-      icon: <UserCheck size={22} />,
-      title: 'Experienced Industry Professionals',
-      desc: 'Our training modules and advisory interventions are led by seasoned veterans who bring decades of real shop-floor problem solving.',
-    },
-    {
-      icon: <Users size={22} />,
-      title: 'Comprehensive Workforce Support',
-      desc: 'From technical candidate screening to precise job matching, we draw upon proven staffing modes to provide reliable manpower solutions.',
+      icon: <Video size={22} />,
+      title: 'Self-Paced Learning Solutions',
+      desc: 'With Self-Paced Learning as the primary objective, we convert complex shop-floor procedures, machinery operations, and safety protocols into modular on-demand learning assets for lasting worker mastery.',
     },
     {
       icon: <GraduationCap size={22} />,
@@ -36,9 +18,9 @@ export const WhySpan: React.FC = () => {
       desc: 'Hands-on curriculum covering continuous improvement, workplace organization, quality tools, and machine drawings to build real discipline in engineering teams.',
     },
     {
-      icon: <Video size={22} />,
-      title: 'Self-Paced Learning Solutions',
-      desc: 'With Self-Paced Learning as the primary objective, we convert complex shop-floor procedures, machinery operations, and safety protocols into modular on-demand learning assets for lasting worker mastery.',
+      icon: <UserCheck size={22} />,
+      title: 'Experienced Industry Professionals',
+      desc: 'Our training modules and advisory interventions are led by seasoned veterans who bring decades of real shop-floor problem solving.',
     },
   ];
 
