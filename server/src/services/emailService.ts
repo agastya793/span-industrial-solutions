@@ -6,6 +6,7 @@ import type { InquiryRecord } from '../types/inquiry.js';
 export interface EmailSendResult {
   success: boolean;
   messageId?: string;
+  statusCode?: number | null;
   error?: string;
   skipped?: boolean;
 }
@@ -264,7 +265,7 @@ export async function sendInquiryNotificationEmail(
     };
   }
 
-  const recipient = config.resendToEmail || 'INFOSPAN.UKD@gmail.com';
+  const recipient = (config.resendToEmail || 'infospan.ukd@gmail.com').trim().toLowerCase();
   const sender = config.resendFromEmail || 'SPAN Industrial Solutions <onboarding@resend.dev>';
   const subject = `New Corporate Enquiry - SPAN Industrial Solutions: ${inquiry.company} [${inquiry.service}]`;
 
@@ -282,22 +283,37 @@ export async function sendInquiryNotificationEmail(
     });
 
     if (error) {
-      logger.error(`Resend email delivery failure for inquiry #${inquiry.id}: ${error.message}`);
+      const statusCode = (error as any).statusCode || (error as any).status || 400;
+      const errorType = error.name || 'validation_error';
+      logger.error(
+        `Resend email delivery failure for inquiry #${inquiry.id}: ` +
+        `status=${statusCode}, type=${errorType}, message=${error.message}`
+      );
       return {
         success: false,
+        statusCode,
         error: error.message,
       };
     }
 
-    logger.info(`Email notification successfully sent for inquiry #${inquiry.id} (Resend ID: ${data?.id})`);
+    logger.info(
+      `Email notification successfully sent for inquiry #${inquiry.id} ` +
+      `(Resend Message ID: ${data?.id}, HTTP Status: 200, Recipient: ${recipient})`
+    );
     return {
       success: true,
+      statusCode: 200,
       messageId: data?.id,
     };
   } catch (err: any) {
-    logger.error(`Unexpected error during email delivery for inquiry #${inquiry.id}: ${err.message}`);
+    const statusCode = err?.statusCode || err?.status || 500;
+    logger.error(
+      `Unexpected error during email delivery for inquiry #${inquiry.id}: ` +
+      `status=${statusCode}, message=${err.message || 'Unknown email delivery error'}`
+    );
     return {
       success: false,
+      statusCode,
       error: err.message || 'Unknown email delivery error',
     };
   }

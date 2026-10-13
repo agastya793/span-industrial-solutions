@@ -1,7 +1,7 @@
+import { config } from './config/env.js';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
-import { config } from './config/env.js';
 import { initDatabase, pool } from './config/db.js';
 import inquiryRoutes from './routes/inquiryRoutes.js';
 import healthRoutes from './routes/healthRoutes.js';
