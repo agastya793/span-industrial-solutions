@@ -6,5 +6,4 @@ exports.INQUIRY_SERVICES = [
     'Guaranteed Saving Program',
     'Experts Training for Industries',
     'Self-Paced Learning & Video Solutions',
-    'Industrial / Corporate Video Solutions',
 ];

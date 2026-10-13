@@ -2,15 +2,13 @@ export type InquiryServiceType =
   | 'Workforce Management Solutions'
   | 'Guaranteed Saving Program'
   | 'Experts Training for Industries'
-  | 'Self-Paced Learning & Video Solutions'
-  | 'Industrial / Corporate Video Solutions';
+  | 'Self-Paced Learning & Video Solutions';
 
 export const INQUIRY_SERVICES: readonly InquiryServiceType[] = [
   'Workforce Management Solutions',
   'Guaranteed Saving Program',
   'Experts Training for Industries',
   'Self-Paced Learning & Video Solutions',
-  'Industrial / Corporate Video Solutions',
 ] as const;
 
 export interface InquiryInput {
