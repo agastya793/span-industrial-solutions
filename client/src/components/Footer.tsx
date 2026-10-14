@@ -231,10 +231,10 @@ export const Footer: React.FC<FooterProps> = ({ onSelectService }) => {
                 </div>
               </div>
 
-              {/* Contact 3: Ankit Kumar */}
+              {/* Contact 3: Ankit Bathla */}
               <div className="footer-team-card">
-                <div className="footer-team-name">Ankit Kumar</div>
-                <a href="tel:+919568799107" className="footer-team-phone" aria-label="Call Ankit Kumar at +919568799107">
+                <div className="footer-team-name">Ankit Bathla</div>
+                <a href="tel:+919568799107" className="footer-team-phone" aria-label="Call Ankit Bathla at +919568799107">
                   <Phone size={13} style={{ flexShrink: 0 }} />
                   <span>+919568799107</span>
                 </a>
