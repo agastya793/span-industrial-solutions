@@ -15,10 +15,7 @@ import {
   getActiveContextCount,
 } from '../src/config/context.js';
 import { getClientIp } from '../src/middleware/rateLimiter.js';
-import { Client } from 'pg';
 import {
-  getHyperdriveConnectionString,
-  runWithHyperdrive,
   getD1Database,
   runWithD1,
   insertInquiry,
@@ -98,14 +95,16 @@ describe('Request Context Isolation & Safe Fallback Verification', () => {
     const numRequests = 20;
 
     const runSimulatedRequest = async (index: number) => {
-      const uniqueConn = `postgresql://user_${index}:pass_${index}@hyperdrive-${index}.internal/db_${index}`;
+      const uniqueMockD1 = createMockD1({
+        firstResult: { id: index + 1, name: `Task ${index}` },
+      });
       const uniqueOrigin = `https://client-${index}.example.com`;
       const uniqueApiKey = `resend_key_${index}`;
       const uniqueEnv = index % 2 === 0 ? 'production' : 'development';
 
       const context: RequestContext = {
         requestId: `req-${index}`,
-        hyperdriveConnectionString: uniqueConn,
+        d1Database: uniqueMockD1,
         corsOrigin: uniqueOrigin,
         resendApiKey: uniqueApiKey,
         nodeEnv: uniqueEnv,
@@ -113,7 +112,7 @@ describe('Request Context Isolation & Safe Fallback Verification', () => {
 
       return runWithRequestContext(context, async () => {
         // Initial check before delay
-        assert.strictEqual(getHyperdriveConnectionString(), uniqueConn);
+        assert.strictEqual(getD1Database(), uniqueMockD1);
         assert.strictEqual(config.corsOrigin, uniqueOrigin);
         assert.strictEqual(config.resendApiKey, uniqueApiKey);
         assert.strictEqual(config.nodeEnv, uniqueEnv);
@@ -124,9 +123,9 @@ describe('Request Context Isolation & Safe Fallback Verification', () => {
 
         // Re-check after asynchronous resumption
         assert.strictEqual(
-          getHyperdriveConnectionString(),
-          uniqueConn,
-          `Connection string leaked across request boundaries for req-${index}`
+          getD1Database(),
+          uniqueMockD1,
+          `D1 database binding leaked across request boundaries for req-${index}`
         );
         assert.strictEqual(
           config.corsOrigin,
@@ -158,9 +157,10 @@ describe('Request Context Isolation & Safe Fallback Verification', () => {
 
   test('2. Express request pipeline propagates context and strips isolation headers', async () => {
     const testRequestId = `test-worker-req-${Date.now()}`;
+    const mockD1 = createMockD1();
     const testContext: RequestContext = {
       requestId: testRequestId,
-      hyperdriveConnectionString: 'postgresql://neon:test@hyperdrive.cloudflare/isolated',
+      d1Database: mockD1,
       corsOrigin: 'https://test-isolated.spansol.com',
       resendApiKey: 're_test_isolated_key_123',
       nodeEnv: 'production',
@@ -194,23 +194,25 @@ describe('Request Context Isolation & Safe Fallback Verification', () => {
 
   test('3. Missing request context returns null and never falls back to a global mutable variable', () => {
     // Outside any request context
-    const connStr = getHyperdriveConnectionString();
-    assert.strictEqual(connStr, null, 'Hyperdrive connection string must be null outside context');
+    const d1 = getD1Database();
+    assert.strictEqual(d1, null, 'D1 database binding must be null outside context');
   });
 
-  test('4. runWithHyperdrive safely scopes connection string strictly to callback', async () => {
-    const scopedConn = 'postgresql://hyperdrive:neon@cloudflare.net/scoped_db';
+  test('4. runWithD1 safely scopes D1 database binding strictly to callback', async () => {
+    const mockD1 = createMockD1({
+      firstResult: { id: 42, name: 'Scoped D1' },
+    });
 
-    const result = await runWithHyperdrive(scopedConn, async () => {
-      assert.strictEqual(getHyperdriveConnectionString(), scopedConn);
+    const result = await runWithD1(mockD1, async () => {
+      assert.strictEqual(getD1Database(), mockD1);
       await new Promise((r) => setTimeout(r, 10));
-      assert.strictEqual(getHyperdriveConnectionString(), scopedConn);
+      assert.strictEqual(getD1Database(), mockD1);
       return 42;
     });
 
     assert.strictEqual(result, 42);
-    // After callback ends, connection string must revert to null
-    assert.strictEqual(getHyperdriveConnectionString(), null);
+    // After callback ends, D1 binding must revert to null outside context
+    assert.strictEqual(getD1Database(), null);
   });
 
   test('5. Dynamic configuration getters resolve per-request without mutating process.env', async () => {
@@ -271,53 +273,30 @@ describe('Request Context Isolation & Safe Fallback Verification', () => {
   });
 
   test('7. Local Node.js development mode preserves pool query behavior without context error', async () => {
-    // Outside worker runtime and without hyperdrive context:
+    // Outside worker runtime and without D1 database in context:
     // Calling insertInquiry uses local Node.js development execution path (pool / in-memory fallback)
     const sampleInquiry = {
       name: 'Local Test',
       company: 'Local Corp',
       email: 'local@example.com',
       phone: '+91 9045085537',
-      service: 'Workforce Management Solutions',
+      service: 'Workforce Management Solutions' as const,
     };
 
-    // Should succeed via local fallback without throwing Hyperdrive context error
+    // Should succeed via local fallback without throwing context error
     const record = await insertInquiry(sampleInquiry);
     assert.ok(record.id);
     assert.strictEqual(record.name, 'Local Test');
   });
 
   test('8. Worker request path executes only DML and never executes schema DDL (CREATE/ALTER/DROP)', async () => {
-    const originalConnect = Client.prototype.connect;
-    const originalQuery = Client.prototype.query;
     const executedQueries: string[] = [];
-
-    try {
-      Client.prototype.connect = async function () {
-        return undefined as any;
-      };
-      Client.prototype.query = (async function (queryText: any, values: any[]) {
-        const sql = typeof queryText === 'string' ? queryText : queryText?.text || '';
-        executedQueries.push(sql);
-        return {
-          rows: [
-            {
-              id: 888,
-              name: 'DDL Test',
-              company: 'SPAN Test Corp',
-              email: 'ddl@test.example.com',
-              phone: '+91 9045085537',
-              state: 'Uttarakhand',
-              city: 'Rudrapur',
-              service: 'Workforce Management Solutions',
-              message: 'Testing that no DDL runs on worker path.',
-              created_at: new Date().toISOString(),
-            },
-          ],
-        };
-      }) as any;
-
-      const sampleInquiry = {
+    const mockD1 = createMockD1({
+      onPrepare(query) {
+        executedQueries.push(query);
+      },
+      firstResult: {
+        id: 888,
         name: 'DDL Test',
         company: 'SPAN Test Corp',
         email: 'ddl@test.example.com',
@@ -326,44 +305,51 @@ describe('Request Context Isolation & Safe Fallback Verification', () => {
         city: 'Rudrapur',
         service: 'Workforce Management Solutions',
         message: 'Testing that no DDL runs on worker path.',
-      };
+        created_at: new Date().toISOString(),
+      },
+    });
 
-      // Run within a Hyperdrive request context
-      const scopedConn = 'postgresql://hyperdrive:neon@cloudflare.net/scoped_db';
-      const record = await runWithHyperdrive(scopedConn, async () => {
-        return await insertInquiry(sampleInquiry);
-      });
+    const sampleInquiry = {
+      name: 'DDL Test',
+      company: 'SPAN Test Corp',
+      email: 'ddl@test.example.com',
+      phone: '+91 9045085537',
+      state: 'Uttarakhand',
+      city: 'Rudrapur',
+      service: 'Workforce Management Solutions' as const,
+      message: 'Testing that no DDL runs on worker path.',
+    };
 
-      assert.strictEqual(record.id, 888);
-      assert.strictEqual(executedQueries.length, 1, 'Worker request should execute exactly 1 database query');
+    const record = await runWithD1(mockD1, async () => {
+      return await insertInquiry(sampleInquiry);
+    });
 
-      // Assert that the executed query is an INSERT
-      assert.ok(
-        /INSERT\s+INTO\s+inquiries/i.test(executedQueries[0]),
-        'Worker request must execute an INSERT query'
-      );
+    assert.strictEqual(record.id, 888);
+    assert.strictEqual(executedQueries.length, 1, 'Worker request should execute exactly 1 database query');
 
-      // Assert that no DDL queries were executed
-      assert.ok(
-        !executedQueries.some((q) => /CREATE\s+TABLE/i.test(q)),
-        'Worker request must not execute CREATE TABLE'
-      );
-      assert.ok(
-        !executedQueries.some((q) => /CREATE\s+INDEX/i.test(q)),
-        'Worker request must not execute CREATE INDEX'
-      );
-      assert.ok(
-        !executedQueries.some((q) => /ALTER\s+TABLE/i.test(q)),
-        'Worker request must not execute ALTER TABLE'
-      );
-      assert.ok(
-        !executedQueries.some((q) => /DROP/i.test(q)),
-        'Worker request must not execute DROP'
-      );
-    } finally {
-      Client.prototype.connect = originalConnect;
-      Client.prototype.query = originalQuery;
-    }
+    // Assert that the executed query is an INSERT
+    assert.ok(
+      /INSERT\s+INTO\s+inquiries/i.test(executedQueries[0]),
+      'Worker request must execute an INSERT query'
+    );
+
+    // Assert that no DDL queries were executed
+    assert.ok(
+      !executedQueries.some((q) => /CREATE\s+TABLE/i.test(q)),
+      'Worker request must not execute CREATE TABLE'
+    );
+    assert.ok(
+      !executedQueries.some((q) => /CREATE\s+INDEX/i.test(q)),
+      'Worker request must not execute CREATE INDEX'
+    );
+    assert.ok(
+      !executedQueries.some((q) => /ALTER\s+TABLE/i.test(q)),
+      'Worker request must not execute ALTER TABLE'
+    );
+    assert.ok(
+      !executedQueries.some((q) => /DROP/i.test(q)),
+      'Worker request must not execute DROP'
+    );
   });
 
   test('9. Local development initDatabase executes schema initialization without errors', async () => {
@@ -425,139 +411,93 @@ describe('Request Context Isolation & Safe Fallback Verification', () => {
     assert.ok(content.includes('idx_inquiries_created_at'));
   });
 
-  test('11. Database health probe via Hyperdrive executes SELECT 1 and returns healthy', async () => {
-    const originalConnect = Client.prototype.connect;
-    const originalQuery = Client.prototype.query;
-    const originalEnd = Client.prototype.end;
-    const executedQueries: string[] = [];
-    let endCalled = false;
+  test('11. Database health probe via D1 in worker bridge executes SELECT 1 and returns healthy', async () => {
+    let executedQuery = '';
+    const mockD1 = createMockD1({
+      onPrepare(query) {
+        executedQuery = query;
+      },
+      firstResult: { 1: 1 },
+    });
 
-    try {
-      Client.prototype.connect = async function () {
-        return undefined as any;
-      };
-      Client.prototype.query = (async function (queryText: any) {
-        const sql = typeof queryText === 'string' ? queryText : queryText?.text || '';
-        executedQueries.push(sql);
-        return { rows: [{ '?column?': 1 }] };
-      }) as any;
-      Client.prototype.end = (async function () {
-        endCalled = true;
-      }) as any;
+    const testRequestId = `test-health-worker-${Date.now()}`;
+    const testContext: RequestContext = {
+      requestId: testRequestId,
+      d1Database: mockD1,
+      nodeEnv: 'production',
+    };
 
-      const testRequestId = `test-health-worker-${Date.now()}`;
-      const testContext: RequestContext = {
-        requestId: testRequestId,
-        hyperdriveConnectionString: 'postgresql://neon:test@hyperdrive.cloudflare/isolated',
-        nodeEnv: 'production',
-      };
+    registerRequestContext(testRequestId, testContext);
 
-      registerRequestContext(testRequestId, testContext);
+    const response = await fetch(`${baseUrl}/api/health`, {
+      headers: {
+        'x-worker-request-id': testRequestId,
+      },
+    });
 
-      const response = await fetch(`${baseUrl}/api/health`, {
-        headers: {
-          'x-worker-request-id': testRequestId,
-        },
-      });
+    assert.strictEqual(response.status, 200);
+    const json = (await response.json()) as any;
+    assert.strictEqual(json.status, 'healthy');
+    assert.strictEqual(json.database, 'connected');
+    assert.strictEqual(json.company, 'SPAN Industrial Solutions Pvt Ltd');
+    assert.ok(json.timestamp);
 
-      assert.strictEqual(response.status, 200);
-      const json = (await response.json()) as any;
-      assert.strictEqual(json.status, 'healthy');
-      assert.strictEqual(json.database, 'connected');
-      assert.strictEqual(json.company, 'SPAN Industrial Solutions Pvt Ltd');
-      assert.ok(json.timestamp);
-
-      // Verify SELECT 1 was executed and client was closed safely
-      assert.strictEqual(executedQueries.length, 1);
-      assert.strictEqual(executedQueries[0], 'SELECT 1');
-      assert.strictEqual(endCalled, true, 'Client must be closed in finally');
-    } finally {
-      Client.prototype.connect = originalConnect;
-      Client.prototype.query = originalQuery;
-      Client.prototype.end = originalEnd;
-    }
+    // Verify SELECT 1 was executed
+    assert.strictEqual(executedQuery.trim(), 'SELECT 1');
   });
 
-  test('12. Database health probe via Hyperdrive handles query failure safely without exposing internal errors', async () => {
-    const originalConnect = Client.prototype.connect;
-    const originalQuery = Client.prototype.query;
-    const originalEnd = Client.prototype.end;
-    let endCalled = false;
+  test('12. Database health probe via D1 in worker bridge handles query failure safely without exposing internal errors', async () => {
+    const mockD1 = createMockD1({
+      shouldFail: true,
+      failureError: new Error('D1DatabaseInternalError: connection terminated unexpectedly on cluster secret_db'),
+    });
 
-    try {
-      Client.prototype.connect = async function () {
-        return undefined as any;
-      };
-      Client.prototype.query = (async function () {
-        throw new Error('SecretNeonCredentialsDatabaseError: connection terminated unexpectedly');
-      }) as any;
-      Client.prototype.end = (async function () {
-        endCalled = true;
-      }) as any;
+    const testRequestId = `test-health-fail-${Date.now()}`;
+    const testContext: RequestContext = {
+      requestId: testRequestId,
+      d1Database: mockD1,
+      nodeEnv: 'production',
+    };
 
-      const testRequestId = `test-health-fail-${Date.now()}`;
-      const testContext: RequestContext = {
-        requestId: testRequestId,
-        hyperdriveConnectionString: 'postgresql://user:secret_password@hyperdrive.internal/prod_db',
-        nodeEnv: 'production',
-      };
+    registerRequestContext(testRequestId, testContext);
 
-      registerRequestContext(testRequestId, testContext);
+    const response = await fetch(`${baseUrl}/api/health`, {
+      headers: {
+        'x-worker-request-id': testRequestId,
+      },
+    });
 
-      const response = await fetch(`${baseUrl}/api/health`, {
-        headers: {
-          'x-worker-request-id': testRequestId,
-        },
-      });
+    assert.strictEqual(response.status, 503, 'Must return 503 when database query fails in production');
+    const json = (await response.json()) as any;
+    assert.strictEqual(json.status, 'degraded');
+    assert.strictEqual(json.database, 'disconnected');
+    assert.strictEqual(json.company, 'SPAN Industrial Solutions Pvt Ltd');
 
-      assert.strictEqual(response.status, 503, 'Must return 503 when database query fails in production');
-      const json = (await response.json()) as any;
-      assert.strictEqual(json.status, 'degraded');
-      assert.strictEqual(json.database, 'disconnected');
-      assert.strictEqual(json.company, 'SPAN Industrial Solutions Pvt Ltd');
-
-      // Verify credentials and internal errors are never exposed in the response
-      const rawText = JSON.stringify(json);
-      assert.ok(!rawText.includes('secret_password'));
-      assert.ok(!rawText.includes('SecretNeonCredentialsDatabaseError'));
-      assert.strictEqual(endCalled, true, 'Client must be closed on query failure');
-    } finally {
-      Client.prototype.connect = originalConnect;
-      Client.prototype.query = originalQuery;
-      Client.prototype.end = originalEnd;
-    }
+    // Verify credentials and internal errors are never exposed in the response
+    const rawText = JSON.stringify(json);
+    assert.ok(!rawText.includes('secret_db'));
+    assert.ok(!rawText.includes('D1DatabaseInternalError'));
   });
 
   test('13. Health probe executes zero DDL statements', async () => {
-    const originalConnect = Client.prototype.connect;
-    const originalQuery = Client.prototype.query;
     const executedQueries: string[] = [];
+    const mockD1 = createMockD1({
+      onPrepare(query) {
+        executedQueries.push(query);
+      },
+      firstResult: { 1: 1 },
+    });
 
-    try {
-      Client.prototype.connect = async function () {
-        return undefined as any;
-      };
-      Client.prototype.query = (async function (queryText: any) {
-        const sql = typeof queryText === 'string' ? queryText : queryText?.text || '';
-        executedQueries.push(sql);
-        return { rows: [{ '?column?': 1 }] };
-      }) as any;
+    const healthy = await runWithD1(mockD1, async () => {
+      return await checkDatabaseHealth();
+    });
 
-      const scopedConn = 'postgresql://hyperdrive:neon@cloudflare.net/scoped_db';
-      const healthy = await runWithHyperdrive(scopedConn, async () => {
-        return await checkDatabaseHealth();
-      });
-
-      assert.strictEqual(healthy, true);
-      assert.strictEqual(executedQueries.length, 1);
-      assert.strictEqual(executedQueries[0], 'SELECT 1');
-      assert.ok(!executedQueries.some((q) => /CREATE/i.test(q)));
-      assert.ok(!executedQueries.some((q) => /ALTER/i.test(q)));
-      assert.ok(!executedQueries.some((q) => /DROP/i.test(q)));
-    } finally {
-      Client.prototype.connect = originalConnect;
-      Client.prototype.query = originalQuery;
-    }
+    assert.strictEqual(healthy, true);
+    assert.strictEqual(executedQueries.length, 1);
+    assert.strictEqual(executedQueries[0].trim(), 'SELECT 1');
+    assert.ok(!executedQueries.some((q) => /CREATE/i.test(q)));
+    assert.ok(!executedQueries.some((q) => /ALTER/i.test(q)));
+    assert.ok(!executedQueries.some((q) => /DROP/i.test(q)));
   });
 
   test('14. Health check in worker runtime without D1 database binding reports degraded safely', async () => {

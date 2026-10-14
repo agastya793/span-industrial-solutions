@@ -11,16 +11,12 @@ import {
 
 export interface WorkerEnv {
   span_industrial_d1?: D1Database;
-  HYPERDRIVE?: {
-    connectionString: string;
-  };
   INQUIRY_RATE_LIMITER?: RateLimiterBinding;
   RESEND_API_KEY?: string;
   RESEND_FROM_EMAIL?: string;
   RESEND_TO_EMAIL?: string;
   NODE_ENV?: string;
   CORS_ORIGIN?: string;
-  DATABASE_URL?: string;
 }
 
 export const app = createApp({ isWorker: true });
@@ -43,13 +39,11 @@ export default {
     const context: RequestContext = {
       requestId,
       d1Database: env?.span_industrial_d1,
-      hyperdriveConnectionString: env?.HYPERDRIVE?.connectionString,
       nodeEnv: env?.NODE_ENV || 'production',
       corsOrigin: env?.CORS_ORIGIN,
       resendApiKey: env?.RESEND_API_KEY ? env.RESEND_API_KEY.trim() : '',
       resendFromEmail: env?.RESEND_FROM_EMAIL?.trim() || 'notifications@spanindustrialsolutions.com',
       resendToEmail: env?.RESEND_TO_EMAIL?.trim()?.toLowerCase() || 'infospan.ukd@gmail.com',
-      databaseUrl: env?.DATABASE_URL?.trim(),
       clientIp,
       inquiryRateLimiter: env?.INQUIRY_RATE_LIMITER,
     };

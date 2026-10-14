@@ -20,14 +20,12 @@ export interface D1Database {
 
 export interface RequestContext {
   requestId?: string;
-  hyperdriveConnectionString?: string;
   d1Database?: D1Database;
   nodeEnv?: string;
   corsOrigin?: string;
   resendApiKey?: string;
   resendFromEmail?: string;
   resendToEmail?: string;
-  databaseUrl?: string;
   clientIp?: string;
   inquiryRateLimiter?: RateLimiterBinding;
 }

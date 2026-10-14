@@ -1,5 +1,5 @@
 import fs from 'fs';
-import { Pool, Client } from 'pg';
+import { Pool } from 'pg';
 import { config, isWorkerRuntime } from './env.js';
 import { logger } from '../utils/logger.js';
 import type { InquiryInput, InquiryRecord } from '../types/inquiry.js';
@@ -28,23 +28,6 @@ export function runWithD1<T>(d1: D1Database | undefined, fn: () => T): T {
  */
 export function getD1Database(): D1Database | null {
   return getRequestContext()?.d1Database || null;
-}
-
-/**
- * Runs a callback within a request-scoped Hyperdrive context.
- */
-export function runWithHyperdrive<T>(connStr: string | undefined, fn: () => T): T {
-  const currentContext = getRequestContext() || {};
-  return runWithRequestContext({ ...currentContext, hyperdriveConnectionString: connStr }, fn);
-}
-
-/**
- * Retrieves the Hyperdrive connection string strictly from the active request context.
- * Returns null if outside a request context or if no Hyperdrive binding was provided.
- * Never falls back to a mutable global variable.
- */
-export function getHyperdriveConnectionString(): string | null {
-  return getRequestContext()?.hyperdriveConnectionString || null;
 }
 
 export interface SslOptions {
@@ -228,7 +211,6 @@ export async function initDatabase(): Promise<void> {
 
 export async function insertInquiry(data: InquiryInput): Promise<InquiryRecord> {
   const d1 = getD1Database();
-  const hyperdriveConn = getHyperdriveConnectionString();
 
   if (isWorkerRuntime()) {
     if (!d1) {
@@ -301,41 +283,6 @@ export async function insertInquiry(data: InquiryInput): Promise<InquiryRecord> 
       }
       throw err;
     }
-  } else if (hyperdriveConn) {
-    // Hyperdrive execution path explicitly active in test/context (DML only)
-    const client = new Client({
-      connectionString: hyperdriveConn,
-    });
-
-    try {
-      await client.connect();
-      const query = `
-        INSERT INTO inquiries (name, company, email, phone, state, city, service, message)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-        RETURNING id, name, company, email, phone, state, city, service, message, created_at;
-      `;
-      const values = [
-        data.name,
-        data.company,
-        data.email,
-        data.phone,
-        data.state || null,
-        data.city || null,
-        data.service,
-        data.message || null,
-      ];
-      const result = await client.query(query, values);
-      return result.rows[0];
-    } catch (err: any) {
-      logger.error('Hyperdrive insertion query failed:', err.message);
-      if (config.nodeEnv === 'production') {
-        throw new Error('Database persistence failed.');
-      }
-    } finally {
-      await client.end().catch((err) => {
-        logger.warn('Error closing Hyperdrive client:', err.message);
-      });
-    }
   } else {
     // Local Node.js development / test execution path
     if (!isPgConnected) {
@@ -406,13 +353,12 @@ export function isDatabaseConnected(): boolean {
 
 /**
  * Asynchronously checks database availability by executing a lightweight SELECT 1 probe.
- * In Cloudflare Workers, uses the active request's Hyperdrive connection from request context.
+ * In Cloudflare Workers, uses the active request's D1 database binding from request context.
  * In local Node.js development, uses the local connection pool.
  * Safely releases or closes the client in all scenarios without leaking connections.
  */
 export async function checkDatabaseHealth(): Promise<boolean> {
   const d1 = getD1Database();
-  const hyperdriveConn = getHyperdriveConnectionString();
 
   if (isWorkerRuntime()) {
     if (!d1) {
@@ -435,25 +381,6 @@ export async function checkDatabaseHealth(): Promise<boolean> {
     } catch (err: any) {
       logger.error('Database health check probe failed via D1:', err.message);
       return false;
-    }
-  } else if (hyperdriveConn) {
-    // Hyperdrive context active (e.g. in test harness)
-    const client = new Client({
-      connectionString: hyperdriveConn,
-      connectionTimeoutMillis: 3000,
-    });
-
-    try {
-      await client.connect();
-      await client.query('SELECT 1');
-      return true;
-    } catch (err: any) {
-      logger.error('Database health check probe failed via Hyperdrive:', err.message);
-      return false;
-    } finally {
-      await client.end().catch((endErr) => {
-        logger.warn('Error closing health check Hyperdrive client:', endErr.message);
-      });
     }
   } else {
     // Local Node.js development / test execution path via pool

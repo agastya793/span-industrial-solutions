@@ -77,8 +77,6 @@ export const config: AppConfig = {
     }
   },
   get databaseUrl(): string {
-    const ctx = getRequestContext();
-    if (ctx?.databaseUrl) return ctx.databaseUrl;
     const rawUrl = process.env.DATABASE_URL?.trim();
     if (rawUrl) return rawUrl;
     return isWorkerRuntime() || this.nodeEnv === 'production'
