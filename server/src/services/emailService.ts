@@ -11,14 +11,17 @@ export interface EmailSendResult {
   skipped?: boolean;
 }
 
+let cachedResendApiKey: string | null = null;
 let resendClient: Resend | null = null;
 
 function getResendClient(): Resend | null {
-  if (!config.resendApiKey) {
+  const currentKey = config.resendApiKey;
+  if (!currentKey) {
     return null;
   }
-  if (!resendClient) {
-    resendClient = new Resend(config.resendApiKey);
+  if (!resendClient || cachedResendApiKey !== currentKey) {
+    resendClient = new Resend(currentKey);
+    cachedResendApiKey = currentKey;
   }
   return resendClient;
 }
@@ -266,7 +269,7 @@ export async function sendInquiryNotificationEmail(
   }
 
   const recipient = (config.resendToEmail || 'infospan.ukd@gmail.com').trim().toLowerCase();
-  const sender = config.resendFromEmail || 'SPAN Industrial Solutions <onboarding@resend.dev>';
+  const sender = config.resendFromEmail || 'SPAN Industrial Solutions <notifications@spanindustrialsolutions.com>';
   const subject = `New Corporate Enquiry - SPAN Industrial Solutions: ${inquiry.company} [${inquiry.service}]`;
 
   const html = generateInquiryEmailHtml(inquiry);

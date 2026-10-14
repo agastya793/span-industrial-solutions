@@ -6,6 +6,7 @@ import {
   Send,
 } from 'lucide-react';
 import { INQUIRY_SERVICES, type InquiryFormData, type InquiryServiceType } from '../types/inquiry';
+import { getApiUrl } from '../utils/api';
 
 interface ContactProps {
   selectedServicePreload?: InquiryServiceType;
@@ -127,7 +128,7 @@ export const Contact: React.FC<ContactProps> = ({ selectedServicePreload }) => {
     setIsLoading(true);
 
     try {
-      const res = await fetch('/api/inquiries', {
+      const res = await fetch(getApiUrl('/api/inquiries'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

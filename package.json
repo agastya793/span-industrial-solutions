@@ -25,7 +25,8 @@
   "author": "SPAN Industrial Solutions Pvt Ltd",
   "license": "ISC",
   "devDependencies": {
-    "concurrently": "^9.2.5"
+    "concurrently": "^9.2.5",
+    "wrangler": "^4.150.0"
   },
   "dependencies": {
     "resend": "^6.32.1"

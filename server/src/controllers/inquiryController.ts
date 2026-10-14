@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { validateInquiry } from '../validators/inquiryValidator.js';
 import { processInquiry } from '../services/inquiryService.js';
-import { isDatabaseConnected } from '../config/db.js';
+import { isDatabaseConnected, checkDatabaseHealth } from '../config/db.js';
 import { config } from '../config/env.js';
 import type { ApiResponse, InquiryRecord } from '../types/inquiry.js';
 import { logger } from '../utils/logger.js';
@@ -37,7 +37,7 @@ export async function createInquiry(
       logger.error('Inquiry submission rejected: database is offline in production.');
       res.status(503).json({
         success: false,
-        message: 'Inquiry service is temporarily unavailable. Please try again in a few moments or email us directly at sales@spansol.com.',
+        message: 'Inquiry service is temporarily unavailable. Please try again in a few moments or email us directly at INFOSPAN.UKD@gmail.com.',
       });
       return;
     }
@@ -55,24 +55,35 @@ export async function createInquiry(
     res.status(statusCode).json({
       success: false,
       message: config.nodeEnv === 'production'
-        ? 'Inquiry service is temporarily unavailable. Please try again in a few moments or email us directly at sales@spansol.com.'
-        : 'Failed to process inquiry. Please try again or contact us directly at sales@spansol.com.',
+        ? 'Inquiry service is temporarily unavailable. Please try again in a few moments or email us directly at INFOSPAN.UKD@gmail.com.'
+        : 'Failed to process inquiry. Please try again or contact us directly at INFOSPAN.UKD@gmail.com.',
     });
   }
 }
 
-export function getHealthStatus(
+export async function getHealthStatus(
   _req: Request,
   res: Response
-): void {
-  const isConnected = isDatabaseConnected();
-  const isProd = config.nodeEnv === 'production';
-  const statusCode = !isConnected && isProd ? 503 : 200;
+): Promise<void> {
+  try {
+    const isConnected = await checkDatabaseHealth();
+    const isProd = config.nodeEnv === 'production';
+    const statusCode = !isConnected && isProd ? 503 : 200;
 
-  res.status(statusCode).json({
-    status: isConnected ? 'healthy' : (isProd ? 'degraded' : 'healthy'),
-    timestamp: new Date().toISOString(),
-    database: isConnected ? 'connected' : (isProd ? 'disconnected' : 'memory_fallback'),
-    company: 'SPAN Industrial Solutions Pvt Ltd',
-  });
+    res.status(statusCode).json({
+      status: isConnected ? 'healthy' : (isProd ? 'degraded' : 'healthy'),
+      timestamp: new Date().toISOString(),
+      database: isConnected ? 'connected' : (isProd ? 'disconnected' : 'memory_fallback'),
+      company: 'SPAN Industrial Solutions Pvt Ltd',
+    });
+  } catch (err: any) {
+    logger.error('Database health check probe failed unexpectedly:', err.message);
+    const isProd = config.nodeEnv === 'production';
+    res.status(isProd ? 503 : 200).json({
+      status: isProd ? 'degraded' : 'healthy',
+      timestamp: new Date().toISOString(),
+      database: isProd ? 'disconnected' : 'memory_fallback',
+      company: 'SPAN Industrial Solutions Pvt Ltd',
+    });
+  }
 }
