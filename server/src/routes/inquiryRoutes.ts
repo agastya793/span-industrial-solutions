@@ -1,10 +1,26 @@
 import { Router } from 'express';
 import { createInquiry } from '../controllers/inquiryController.js';
-import { inquiryRateLimiter } from '../middleware/rateLimiter.js';
+import { inquiryRateLimiter, cloudflareInquiryRateLimiter } from '../middleware/rateLimiter.js';
+import { isWorkerRuntime } from '../config/env.js';
 
-const router = Router();
+export interface InquiryRouterOptions {
+  isWorker?: boolean;
+}
 
-// POST /api/inquiries
-router.post('/', inquiryRateLimiter, createInquiry);
+export function createInquiryRouter(options?: InquiryRouterOptions): Router {
+  const isWorker = options?.isWorker ?? isWorkerRuntime();
+  const router = Router();
 
-export default router;
+  if (isWorker) {
+    // Cloudflare Workers: native Rate Limiting binding only, zero timer-based stores
+    router.post('/', cloudflareInquiryRateLimiter, createInquiry);
+  } else {
+    // Local Node.js: Cloudflare limiter (for testing context bindings) + Node in-memory rate limiter
+    router.post('/', cloudflareInquiryRateLimiter, inquiryRateLimiter, createInquiry);
+  }
+
+  return router;
+}
+
+const inquiryRoutes = createInquiryRouter();
+export default inquiryRoutes;

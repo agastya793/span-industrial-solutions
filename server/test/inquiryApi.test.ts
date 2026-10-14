@@ -22,6 +22,7 @@ describe('Inquiry API & Database Failure Handling (Real Application Code)', () =
   const originalPoolQuery = pool.query;
   const originalPoolConnect = pool.connect;
   const originalNodeEnv = config.nodeEnv;
+  const originalResendApiKey = config.resendApiKey;
   const originalConsoleError = console.error;
   const originalConsoleLog = console.log;
 
@@ -29,6 +30,7 @@ describe('Inquiry API & Database Failure Handling (Real Application Code)', () =
   let capturedLogs: string[] = [];
 
   before(async () => {
+    config.resendApiKey = '';
     app = express();
     app.use(express.json());
     app.use('/api/inquiries', inquiryRoutes);
@@ -46,6 +48,7 @@ describe('Inquiry API & Database Failure Handling (Real Application Code)', () =
   after(async () => {
     await new Promise<void>((resolve) => server.close(() => resolve()));
     config.nodeEnv = originalNodeEnv;
+    config.resendApiKey = originalResendApiKey;
     pool.query = originalPoolQuery;
     pool.connect = originalPoolConnect;
     console.error = originalConsoleError;
@@ -436,15 +439,12 @@ describe('Inquiry API & Database Failure Handling (Real Application Code)', () =
     };
 
     // When RESEND_API_KEY is not set
-    const originalKey = config.resendApiKey;
     config.resendApiKey = '';
 
     const result = await sendInquiryNotificationEmail(sampleRecord);
     assert.strictEqual(result.success, false);
     assert.strictEqual(result.skipped, true);
     assert.ok(result.error?.includes('RESEND_API_KEY'));
-
-    config.resendApiKey = originalKey;
   });
 
   test('Scenario 13: Simplified 5-field corporate inquiry submission succeeds with HTTP 201', async () => {

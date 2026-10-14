@@ -20,6 +20,6 @@ export function errorHandler(
 
   res.status(500).json({
     success: false,
-    message: 'An unexpected internal error occurred. Please try again or reach out to sales@spansol.com.',
+    message: 'An unexpected internal error occurred. Please try again or reach out to INFOSPAN.UKD@gmail.com.',
   });
 }

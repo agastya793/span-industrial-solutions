@@ -1,12 +1,51 @@
 import fs from 'fs';
-import { Pool } from 'pg';
-import { config } from './env.js';
+import { Pool, Client } from 'pg';
+import { config, isWorkerRuntime } from './env.js';
 import { logger } from '../utils/logger.js';
 import type { InquiryInput, InquiryRecord } from '../types/inquiry.js';
+import {
+  getRequestContext,
+  runWithRequestContext,
+  D1Database,
+} from './context.js';
 
 let isPgConnected = false;
 let memoryInquiries: InquiryRecord[] = [];
 let nextId = 1;
+
+/**
+ * Runs a callback within a request-scoped D1 context.
+ */
+export function runWithD1<T>(d1: D1Database | undefined, fn: () => T): T {
+  const currentContext = getRequestContext() || {};
+  return runWithRequestContext({ ...currentContext, d1Database: d1 }, fn);
+}
+
+/**
+ * Retrieves the D1 database binding strictly from the active request context.
+ * Returns null if outside a request context or if no D1 binding was provided.
+ * Never falls back to a mutable global variable.
+ */
+export function getD1Database(): D1Database | null {
+  return getRequestContext()?.d1Database || null;
+}
+
+/**
+ * Runs a callback within a request-scoped Hyperdrive context.
+ */
+export function runWithHyperdrive<T>(connStr: string | undefined, fn: () => T): T {
+  const currentContext = getRequestContext() || {};
+  return runWithRequestContext({ ...currentContext, hyperdriveConnectionString: connStr }, fn);
+}
+
+/**
+ * Retrieves the Hyperdrive connection string strictly from the active request context.
+ * Returns null if outside a request context or if no Hyperdrive binding was provided.
+ * Never falls back to a mutable global variable.
+ */
+export function getHyperdriveConnectionString(): string | null {
+  return getRequestContext()?.hyperdriveConnectionString || null;
+}
 
 export interface SslOptions {
   rejectUnauthorized: boolean;
@@ -115,16 +154,34 @@ export function getPoolSslConfig(
   return false;
 }
 
-export const pool = new Pool({
-  connectionString: config.databaseUrl,
-  connectionTimeoutMillis: 5000,
-  idleTimeoutMillis: 10000,
-  ssl: getPoolSslConfig(),
-});
+/**
+ * Global pool for local Node.js development and test environments.
+ * In Cloudflare Workers, a proxy object is used so no idle timers or startup
+ * connection pools are created in the serverless isolate.
+ */
+export const pool: Pool = isWorkerRuntime()
+  ? (new Proxy({} as Pool, {
+      get(_target, prop) {
+        if (prop === 'on') return () => {};
+        if (prop === 'end') return async () => {};
+        if (prop === 'connect') return async () => ({ query: async () => {}, release: () => {} });
+        if (prop === 'query') return async () => ({ rows: [] });
+        return undefined;
+      },
+    }))
+  : new Pool({
+      connectionString: config.databaseUrl || undefined,
+      connectionTimeoutMillis: 5000,
+      idleTimeoutMillis: 10000,
+      ssl: getPoolSslConfig(),
+    });
 
-pool.on('error', (err) => {
-  logger.error('Unexpected error on idle PostgreSQL client:', err.message);
-});
+if (!isWorkerRuntime()) {
+  pool.on('error', (err) => {
+    logger.error('Unexpected error on idle PostgreSQL client:', err.message);
+  });
+}
+
 
 export async function initDatabase(): Promise<void> {
   try {
@@ -170,13 +227,88 @@ export async function initDatabase(): Promise<void> {
 }
 
 export async function insertInquiry(data: InquiryInput): Promise<InquiryRecord> {
-  // If connection was lost or not yet established, attempt to connect
-  if (!isPgConnected) {
-    await initDatabase();
-  }
+  const d1 = getD1Database();
+  const hyperdriveConn = getHyperdriveConnectionString();
 
-  if (isPgConnected) {
+  if (isWorkerRuntime()) {
+    if (!d1) {
+      logger.error('Inquiry rejected: No D1 database binding found in the active request context.');
+      throw new Error('Database access failed: No D1 database binding available in the active request context.');
+    }
+
+    // Cloudflare Workers + D1 execution path (prepared statements with bound parameters)
     try {
+      const query = `
+        INSERT INTO inquiries (name, company, email, phone, state, city, service, message)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        RETURNING id, name, company, email, phone, state, city, service, message, created_at;
+      `;
+      const result = await d1
+        .prepare(query)
+        .bind(
+          data.name,
+          data.company,
+          data.email,
+          data.phone,
+          data.state || null,
+          data.city || null,
+          data.service,
+          data.message || null
+        )
+        .first<InquiryRecord>();
+
+      if (!result) {
+        throw new Error('D1 insert operation returned no record.');
+      }
+      return result;
+    } catch (err: any) {
+      logger.error('D1 insertion query failed:', err.message);
+      if (config.nodeEnv === 'production') {
+        throw new Error('Database persistence failed.');
+      }
+      throw err;
+    }
+  } else if (d1) {
+    // D1 execution path explicitly active in test/context
+    try {
+      const query = `
+        INSERT INTO inquiries (name, company, email, phone, state, city, service, message)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        RETURNING id, name, company, email, phone, state, city, service, message, created_at;
+      `;
+      const result = await d1
+        .prepare(query)
+        .bind(
+          data.name,
+          data.company,
+          data.email,
+          data.phone,
+          data.state || null,
+          data.city || null,
+          data.service,
+          data.message || null
+        )
+        .first<InquiryRecord>();
+
+      if (!result) {
+        throw new Error('D1 insert operation returned no record.');
+      }
+      return result;
+    } catch (err: any) {
+      logger.error('D1 insertion query failed:', err.message);
+      if (config.nodeEnv === 'production') {
+        throw new Error('Database persistence failed.');
+      }
+      throw err;
+    }
+  } else if (hyperdriveConn) {
+    // Hyperdrive execution path explicitly active in test/context (DML only)
+    const client = new Client({
+      connectionString: hyperdriveConn,
+    });
+
+    try {
+      await client.connect();
       const query = `
         INSERT INTO inquiries (name, company, email, phone, state, city, service, message)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
@@ -192,12 +324,48 @@ export async function insertInquiry(data: InquiryInput): Promise<InquiryRecord> 
         data.service,
         data.message || null,
       ];
-      const result = await pool.query(query, values);
+      const result = await client.query(query, values);
       return result.rows[0];
     } catch (err: any) {
-      logger.error('Database insertion query failed:', err.message);
+      logger.error('Hyperdrive insertion query failed:', err.message);
       if (config.nodeEnv === 'production') {
         throw new Error('Database persistence failed.');
+      }
+    } finally {
+      await client.end().catch((err) => {
+        logger.warn('Error closing Hyperdrive client:', err.message);
+      });
+    }
+  } else {
+    // Local Node.js development / test execution path
+    if (!isPgConnected) {
+      await initDatabase();
+    }
+
+    if (isPgConnected) {
+      try {
+        const query = `
+          INSERT INTO inquiries (name, company, email, phone, state, city, service, message)
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+          RETURNING id, name, company, email, phone, state, city, service, message, created_at;
+        `;
+        const values = [
+          data.name,
+          data.company,
+          data.email,
+          data.phone,
+          data.state || null,
+          data.city || null,
+          data.service,
+          data.message || null,
+        ];
+        const result = await pool.query(query, values);
+        return result.rows[0];
+      } catch (err: any) {
+        logger.error('Database insertion query failed:', err.message);
+        if (config.nodeEnv === 'production') {
+          throw new Error('Database persistence failed.');
+        }
       }
     }
   }
@@ -227,5 +395,81 @@ export async function insertInquiry(data: InquiryInput): Promise<InquiryRecord> 
 }
 
 export function isDatabaseConnected(): boolean {
+  if (isWorkerRuntime()) {
+    return Boolean(getD1Database());
+  }
+  if (getD1Database()) {
+    return true;
+  }
   return isPgConnected;
+}
+
+/**
+ * Asynchronously checks database availability by executing a lightweight SELECT 1 probe.
+ * In Cloudflare Workers, uses the active request's Hyperdrive connection from request context.
+ * In local Node.js development, uses the local connection pool.
+ * Safely releases or closes the client in all scenarios without leaking connections.
+ */
+export async function checkDatabaseHealth(): Promise<boolean> {
+  const d1 = getD1Database();
+  const hyperdriveConn = getHyperdriveConnectionString();
+
+  if (isWorkerRuntime()) {
+    if (!d1) {
+      logger.warn('Database health check probe skipped: No D1 database binding in request context.');
+      return false;
+    }
+
+    try {
+      await d1.prepare('SELECT 1').first();
+      return true;
+    } catch (err: any) {
+      logger.error('Database health check probe failed via D1:', err.message);
+      return false;
+    }
+  } else if (d1) {
+    // D1 context explicitly active (e.g. in test harness)
+    try {
+      await d1.prepare('SELECT 1').first();
+      return true;
+    } catch (err: any) {
+      logger.error('Database health check probe failed via D1:', err.message);
+      return false;
+    }
+  } else if (hyperdriveConn) {
+    // Hyperdrive context active (e.g. in test harness)
+    const client = new Client({
+      connectionString: hyperdriveConn,
+      connectionTimeoutMillis: 3000,
+    });
+
+    try {
+      await client.connect();
+      await client.query('SELECT 1');
+      return true;
+    } catch (err: any) {
+      logger.error('Database health check probe failed via Hyperdrive:', err.message);
+      return false;
+    } finally {
+      await client.end().catch((endErr) => {
+        logger.warn('Error closing health check Hyperdrive client:', endErr.message);
+      });
+    }
+  } else {
+    // Local Node.js development / test execution path via pool
+    try {
+      const client = await pool.connect();
+      try {
+        await client.query('SELECT 1');
+        isPgConnected = true;
+        return true;
+      } finally {
+        client.release();
+      }
+    } catch (err: any) {
+      isPgConnected = false;
+      logger.warn('Database health check probe failed via pool:', err.message);
+      return false;
+    }
+  }
 }
