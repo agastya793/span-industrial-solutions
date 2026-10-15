@@ -339,6 +339,120 @@ export const ServiceModal: React.FC<ServiceModalProps> = ({
         )}
 
         <div style={{ marginBottom: '1.5rem' }}>
+          {service.id === 'workforce-management' && (
+            <div
+              className="workforce-marquee-banner"
+              role="region"
+              aria-label="Active Job Openings Announcement"
+            >
+              <div className="workforce-marquee-track">
+                <div className="workforce-marquee-content">
+                  <div className="workforce-marquee-item">
+                    <span className="workforce-marquee-badge">Hiring Now</span>
+                    <span>
+                      We have ongoing job openings across the industrial, engineering, manufacturing, and operations roles. You can send your resume —{' '}
+                      <a
+                        href="https://mail.google.com/mail/?view=cm&fs=1&to=contact@spanindustrialsolutions.com&su=Job%20Application%20%2F%20Resume%20Submission%20-%20SPAN%20Industrial%20Solutions&body=Dear%20SPAN%20Recruitment%20Team%2C%0A%0APlease%20find%20attached%20my%20resume%20for%20the%20ongoing%20job%20openings.%0A%0AName%3A%20%0APhone%3A%20%0ARole%20Applied%20For%3A%20%0A"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title="Click to open directly in Gmail"
+                        style={{ color: '#0284c7', textDecoration: 'underline', fontWeight: 700 }}
+                      >
+                        contact@spanindustrialsolutions.com
+                      </a>
+                    </span>
+                    <span className="workforce-marquee-star">✦</span>
+                  </div>
+                  <div className="workforce-marquee-item">
+                    <span className="workforce-marquee-badge">Hiring Now</span>
+                    <span>
+                      We have ongoing job openings across the industrial, engineering, manufacturing, and operations roles. You can send your resume —{' '}
+                      <a
+                        href="https://mail.google.com/mail/?view=cm&fs=1&to=contact@spanindustrialsolutions.com&su=Job%20Application%20%2F%20Resume%20Submission%20-%20SPAN%20Industrial%20Solutions&body=Dear%20SPAN%20Recruitment%20Team%2C%0A%0APlease%20find%20attached%20my%20resume%20for%20the%20ongoing%20job%20openings.%0A%0AName%3A%20%0APhone%3A%20%0ARole%20Applied%20For%3A%20%0A"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title="Click to open directly in Gmail"
+                        style={{ color: '#0284c7', textDecoration: 'underline', fontWeight: 700 }}
+                      >
+                        contact@spanindustrialsolutions.com
+                      </a>
+                    </span>
+                    <span className="workforce-marquee-star">✦</span>
+                  </div>
+                </div>
+                <div className="workforce-marquee-content" aria-hidden="true">
+                  <div className="workforce-marquee-item">
+                    <span className="workforce-marquee-badge">Hiring Now</span>
+                    <span>
+                      We have ongoing job openings across the industrial, engineering, manufacturing, and operations roles. You can send your resume —{' '}
+                      <a
+                        href="https://mail.google.com/mail/?view=cm&fs=1&to=contact@spanindustrialsolutions.com&su=Job%20Application%20%2F%20Resume%20Submission%20-%20SPAN%20Industrial%20Solutions&body=Dear%20SPAN%20Recruitment%20Team%2C%0A%0APlease%20find%20attached%20my%20resume%20for%20the%20ongoing%20job%20openings.%0A%0AName%3A%20%0APhone%3A%20%0ARole%20Applied%20For%3A%20%0A"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title="Click to open directly in Gmail"
+                        style={{ color: '#0284c7', textDecoration: 'underline', fontWeight: 700 }}
+                      >
+                        contact@spanindustrialsolutions.com
+                      </a>
+                    </span>
+                    <span className="workforce-marquee-star">✦</span>
+                  </div>
+                  <div className="workforce-marquee-item">
+                    <span className="workforce-marquee-badge">Hiring Now</span>
+                    <span>
+                      We have ongoing job openings across the industrial, engineering, manufacturing, and operations roles. You can send your resume —{' '}
+                      <a
+                        href="https://mail.google.com/mail/?view=cm&fs=1&to=contact@spanindustrialsolutions.com&su=Job%20Application%20%2F%20Resume%20Submission%20-%20SPAN%20Industrial%20Solutions&body=Dear%20SPAN%20Recruitment%20Team%2C%0A%0APlease%20find%20attached%20my%20resume%20for%20the%20ongoing%20job%20openings.%0A%0AName%3A%20%0APhone%3A%20%0ARole%20Applied%20For%3A%20%0A"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title="Click to open directly in Gmail"
+                        style={{ color: '#0284c7', textDecoration: 'underline', fontWeight: 700 }}
+                      >
+                        contact@spanindustrialsolutions.com
+                      </a>
+                    </span>
+                    <span className="workforce-marquee-star">✦</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {service.id === 'experts-training' && (
+            <div
+              className="workforce-marquee-banner training-marquee-banner"
+              role="region"
+              aria-label="Training Programs Announcement"
+            >
+              <div className="workforce-marquee-track">
+                <div className="workforce-marquee-content">
+                  <div className="workforce-marquee-item">
+                    <span className="workforce-marquee-badge training-marquee-badge">200+ Programs</span>
+                    <span>We offer 200+ specialized training programs across the automotive and process industries.</span>
+                    <span className="workforce-marquee-star training-marquee-star">✦</span>
+                  </div>
+                  <div className="workforce-marquee-item">
+                    <span className="workforce-marquee-badge training-marquee-badge">200+ Programs</span>
+                    <span>We offer 200+ specialized training programs across the automotive and process industries.</span>
+                    <span className="workforce-marquee-star training-marquee-star">✦</span>
+                  </div>
+                </div>
+                <div className="workforce-marquee-content" aria-hidden="true">
+                  <div className="workforce-marquee-item">
+                    <span className="workforce-marquee-badge training-marquee-badge">200+ Programs</span>
+                    <span>We offer 200+ specialized training programs across the automotive and process industries.</span>
+                    <span className="workforce-marquee-star training-marquee-star">✦</span>
+                  </div>
+                  <div className="workforce-marquee-item">
+                    <span className="workforce-marquee-badge training-marquee-badge">200+ Programs</span>
+                    <span>We offer 200+ specialized training programs across the automotive and process industries.</span>
+                    <span className="workforce-marquee-star training-marquee-star">✦</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           <h4 style={{ fontSize: '0.95rem', color: '#0b2545', marginBottom: '0.75rem', fontWeight: 700 }}>
             Key Areas & Capabilities:
           </h4>
