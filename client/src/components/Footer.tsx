@@ -159,11 +159,11 @@ export const Footer: React.FC<FooterProps> = ({ onSelectService }) => {
                     justifyContent: 'space-between',
                   }}
                 >
-                  <span>IP & Data Protection</span>
+                  <span>Confidentiality & NDA</span>
                   <ShieldCheck size={14} color="#38bdf8" />
                 </div>
-                <p style={{ fontSize: '0.74rem', color: '#94a3b8', lineHeight: 1.4, margin: '0 0 8px 0' }}>
-                  Every plant audit, drawing review & staffing engagement is bound by our bilateral NDA.
+                <p style={{ fontSize: '0.74rem', color: '#94a3b8', lineHeight: 1.45, margin: '0 0 8px 0' }}>
+                  Customers share confidential drawings, processes & business data under an NDA signed by SPAN, used solely for agreed business purposes.
                 </p>
                 <div
                   style={{
@@ -175,7 +175,7 @@ export const Footer: React.FC<FooterProps> = ({ onSelectService }) => {
                     fontWeight: 600,
                   }}
                 >
-                  <span>View NDA Protocols</span>
+                  <span>View NDA Policy</span>
                   <ArrowRight size={12} />
                 </div>
               </div>
