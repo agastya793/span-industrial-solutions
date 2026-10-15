@@ -474,7 +474,7 @@ When a client submits the corporate contact form:
 - **Domain Verification**: The sender domain `spanindustrialsolutions.com` is verified with SPF and DKIM on Resend.
 - **Incident History**: Production logs previously emitted `Resend email delivery failure: status=429, message=Reached the daily sending quota`.
 - **Resolution**: An updated Resend API key was provisioned and stored in Cloudflare Worker secrets.
-- **Verification Status**: *Pending live verification*. A live test confirming successful email receipt after the quota error has not yet been executed.
+- **Verification Status**: **VERIFIED**. Live corporate enquiry testing conducted on October 15, 2026 confirmed that the SPAN Industrial Solutions enquiry notification was successfully received in the designated Gmail inbox. Cloudflare D1 database persistence and transactional email delivery via Resend operate as separate, decoupled outcomes—ensuring customer inquiries are safely recorded in D1 regardless of email service status—and this successful live test confirms one complete end-to-end email notification across the production stack (Cloudflare Pages, Cloudflare Workers, Cloudflare D1, and Resend).
 
 ---
 
@@ -542,7 +542,7 @@ If customer inquiries appear in D1 but emails are not received:
 | **CORS Policy** | Express Edge Bridge | **CONFIRMED** | Restricted to `spanindustrialsolutions.com` domains |
 | **Resend Domain Verification** | Resend DNS | **CONFIRMED** | `spanindustrialsolutions.com` verified with SPF/DKIM |
 | **Resend Secret Configuration** | Cloudflare Secrets | **CONFIRMED** | `RESEND_API_KEY` stored as encrypted Worker secret |
-| **Live Email Delivery Test** | Email Flow | ⚠️ **PENDING** | Awaiting confirmed test delivery following quota incident |
+| **Live Email Delivery Test** | Email Flow | **CONFIRMED** | Live enquiry notification received in Gmail on October 15, 2026; validates end-to-end Resend delivery |
 
 ---
 
