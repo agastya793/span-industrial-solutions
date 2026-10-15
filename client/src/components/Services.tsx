@@ -67,11 +67,11 @@ const SERVICES_DATA: ServiceDetail[] = [
     tagline: 'Precision industrial staffing & role-matched candidate recruitment',
     image: '/workforce-management.jpg',
     overview:
-      'SPAN bridges the gap between industrial employers and qualified candidates. We pick the most suitable personnel to fit the exact operational requirements, qualifications, and experience demanded by plant and corporate positions. Leveraging our established background in US staffing and screening approaches, we deploy innovative evaluation techniques that align candidate competencies with employer expectations.',
+      'SPAN bridges the gap between industrial employers and qualified candidates. We pick the most suitable personnel to fit the exact operational requirements, qualifications, and experience demanded by plant and corporate positions. Leveraging our established background in structured screening approaches, we deploy innovative evaluation techniques that align candidate competencies with employer expectations.',
     keyBenefits: [
       'Tailored role matching by technical qualifications and experience',
       'Rigorous multi-stage candidate screening methodology',
-      'US staffing background bringing best-practice recruitment workflows',
+      'Best-practice recruitment workflows bringing structured candidate evaluation',
       'Rapid turnaround for plant, technical, and operational vacancies',
     ],
     scopeAndDeliverables: [
@@ -79,8 +79,6 @@ const SERVICES_DATA: ServiceDetail[] = [
       'Technical Screening & Skill Checks',
       'Engineering Role Placement',
       'Operational Workforce Onboarding',
-      'US Staffing Standards Alignment',
-      'Talent Pipeline Sourcing',
     ],
     specialties: [
       'Customized candidate qualification verification',
@@ -267,7 +265,7 @@ export const Services: React.FC<ServicesProps> = ({ onSelectService }) => {
               <h3 className="service-card-title">Workforce Management Solutions</h3>
               <p className="service-card-desc">
                 Matching industrial employers with suitable candidates based on technical qualifications,
-                verified experience, and precise job requirements. Built on proven US staffing and
+                verified experience, and precise job requirements. Built on proven recruitment and
                 screening methodologies.
               </p>
 
@@ -282,14 +280,14 @@ export const Services: React.FC<ServicesProps> = ({ onSelectService }) => {
                 </li>
                 <li className="service-feature-item">
                   <CheckCircle2 size={15} className="feature-check" />
-                  <span>US staffing background with creative hiring modes</span>
+                  <span>Structured screening with creative hiring modes</span>
                 </li>
               </ul>
 
               <div className="service-pills-row">
                 <span className="service-sub-pill">Role Matching</span>
                 <span className="service-sub-pill">Technical Staffing</span>
-                <span className="service-sub-pill">US Staffing Mode</span>
+                <span className="service-sub-pill">Structured Staffing</span>
               </div>
             </div>
 
