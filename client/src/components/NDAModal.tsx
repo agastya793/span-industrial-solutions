@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { X, ShieldCheck, Lock, FileText, CheckCircle2 } from 'lucide-react';
+import { X, ShieldCheck, Lock } from 'lucide-react';
 
 interface NDAModalProps {
   isOpen: boolean;
@@ -124,89 +124,9 @@ export const NDAModal: React.FC<NDAModalProps> = ({
 
         {/* Description */}
         <p style={{ fontSize: '0.88rem', color: '#334155', lineHeight: 1.6, marginBottom: '1.25rem' }}>
-          At SPAN Industrial Solutions, we understand that shop-floor workflows, cost optimization audits,
-          engineering drawings, and operational metrics represent your competitive advantage. Before initiating
-          any plant assessment, workforce deployment, or cost-reduction program, we execute a comprehensive,
-          bilateral Non-Disclosure Agreement.
+          When partnering with SPAN Industrial Solutions, customers share their confidential business information under a mutually executed Non-Disclosure Agreement (NDA). SPAN reviews and signs the agreement to confirm our commitment to keeping your data confidential and secure. Proprietary customer information, engineering drawings, manufacturing processes, pricing, business plans, and operational data are used solely for the agreed business purpose. Access is strictly limited to authorized personnel who require it to perform designated duties, and appropriate security measures are applied to protect your information, subject to the terms of the agreement and applicable legal requirements.
         </p>
 
-        {/* 4 Core Pillars of SPAN NDA */}
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))',
-            gap: '10px',
-            marginBottom: '1.5rem',
-          }}
-        >
-          <div
-            style={{
-              backgroundColor: '#f8fafc',
-              border: '1px solid #e2e8f0',
-              borderRadius: '8px',
-              padding: '10px 12px',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.82rem', fontWeight: 700, color: '#0b2545', marginBottom: '4px' }}>
-              <FileText size={14} color="#0284c7" />
-              <span>Prior NDA Execution</span>
-            </div>
-            <p style={{ fontSize: '0.77rem', color: '#64748b', margin: 0, lineHeight: 1.45 }}>
-              Signed mutual agreement executed before reviewing any proprietary CAD drawings or plant data.
-            </p>
-          </div>
-
-          <div
-            style={{
-              backgroundColor: '#f8fafc',
-              border: '1px solid #e2e8f0',
-              borderRadius: '8px',
-              padding: '10px 12px',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.82rem', fontWeight: 700, color: '#0b2545', marginBottom: '4px' }}>
-              <Lock size={14} color="#c5221f" />
-              <span>Trade Secret Security</span>
-            </div>
-            <p style={{ fontSize: '0.77rem', color: '#64748b', margin: 0, lineHeight: 1.45 }}>
-              Strict confidentiality on COPQ numbers, manufacturing formulas, vendor costs, and margins.
-            </p>
-          </div>
-
-          <div
-            style={{
-              backgroundColor: '#f8fafc',
-              border: '1px solid #e2e8f0',
-              borderRadius: '8px',
-              padding: '10px 12px',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.82rem', fontWeight: 700, color: '#0b2545', marginBottom: '4px' }}>
-              <CheckCircle2 size={14} color="#15803d" />
-              <span>Role-Bound Personnel Bonds</span>
-            </div>
-            <p style={{ fontSize: '0.77rem', color: '#64748b', margin: 0, lineHeight: 1.45 }}>
-              Deployed staffing and trainers operate under non-disclosure obligations to protect your plant.
-            </p>
-          </div>
-
-          <div
-            style={{
-              backgroundColor: '#f8fafc',
-              border: '1px solid #e2e8f0',
-              borderRadius: '8px',
-              padding: '10px 12px',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.82rem', fontWeight: 700, color: '#0b2545', marginBottom: '4px' }}>
-              <ShieldCheck size={14} color="#7c3aed" />
-              <span>ISO 9001:2015 Governance</span>
-            </div>
-            <p style={{ fontSize: '0.77rem', color: '#64748b', margin: 0, lineHeight: 1.45 }}>
-              Standardized information security audit trails and certified post-engagement data sanitization.
-            </p>
-          </div>
-        </div>
 
         {/* Footer Actions */}
         <div
