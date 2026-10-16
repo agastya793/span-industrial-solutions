@@ -60,6 +60,23 @@ const SERVICE_BADGES: Record<string, { label: string; text: string; color: strin
   },
 };
 
+const renderFormattedText = (text: string) => {
+  const boldMatch = text.match(/^(?:\*\*)?([^*]+)\*\*\s*[:\-–—]?\s*(.*)$/);
+  if (boldMatch) {
+    const title = boldMatch[1].trim();
+    const desc = boldMatch[2].trim();
+    return (
+      <span>
+        <strong style={{ color: '#0b2545', fontWeight: 650 }}>
+          {title}{title.endsWith(':') ? '' : ':'}
+        </strong>{' '}
+        <span>{desc}</span>
+      </span>
+    );
+  }
+  return <span>{text}</span>;
+};
+
 export const ServiceModal: React.FC<ServiceModalProps> = ({
   service,
   onClose,
@@ -232,20 +249,21 @@ export const ServiceModal: React.FC<ServiceModalProps> = ({
                     >
                       Key Focus Deliverables:
                     </div>
-                    <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '5px', margin: 0, padding: 0 }}>
+                    <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '6px', margin: 0, padding: 0 }}>
                       {sec.deliverables.map((item, dIdx) => (
                         <li
                           key={dIdx}
                           style={{
                             display: 'flex',
-                            alignItems: 'center',
+                            alignItems: 'flex-start',
                             gap: '8px',
                             fontSize: '0.8rem',
                             color: '#475569',
+                            lineHeight: 1.45,
                           }}
                         >
-                          <CheckCircle2 size={13} color={idx === 0 ? '#0284c7' : '#ec4899'} style={{ flexShrink: 0 }} />
-                          <span>{item}</span>
+                          <CheckCircle2 size={13} color={idx === 0 ? '#0284c7' : '#ec4899'} style={{ flexShrink: 0, marginTop: '2px' }} />
+                          {renderFormattedText(item)}
                         </li>
                       ))}
                     </ul>
