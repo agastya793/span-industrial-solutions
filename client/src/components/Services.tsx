@@ -190,10 +190,10 @@ const SERVICES_DATA: ServiceDetail[] = [
         description:
           'With Self-Paced Learning as the primary operational objective, SPAN transforms dense machinery manuals and complex engineering workflows into modular, interactive visual learning content. Operators, assembly technicians, and new recruits learn and review standard operating procedures (SOPs) at their own pace directly on rugged shop-floor tablets or training stations. This eliminates the pressure of fast one-time lectures, enables unlimited step-by-step replay for difficult operations, and guarantees uniform retention without pulling experienced engineers off running production lines.',
         deliverables: [
-          'Self-paced digital SOP modules with unlimited replay and step-by-step comprehension',
-          'Interactive machine setup, line balancing & preventive maintenance guidance',
-          'Zero plant disruption: training conducted during shift changeovers or scheduled intervals',
-          'Multilingual audio and bilingual visual subtitles tailored for diverse shop-floor workforces',
+          '**L1 - Basic:** PPT to click-next, images, voiceover, no interactivity',
+          '**L2 - Interactive:** Tabs, process flows, 5-6 drag-drop, quizzes, animations',
+          '**L3 - Scenario-Based:** Branching scenarios, characters, real-life decisions, feedback',
+          '**L4 - Simulation / VR:** Software sim, try-me-do-me, gamified, VR/AR',
         ],
       },
       {
