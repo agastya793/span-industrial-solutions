@@ -446,24 +446,24 @@ export const ServiceModal: React.FC<ServiceModalProps> = ({
                 <div className="workforce-marquee-content">
                   <div className="workforce-marquee-item">
                     <span className="workforce-marquee-badge training-marquee-badge">200+ Programs</span>
-                    <span>We offer 200+ specialized training programs across the automotive and process industries.</span>
+                    <span>We have successfully delivered 200+ specialized training programs across the automotive and process industries.</span>
                     <span className="workforce-marquee-star training-marquee-star">✦</span>
                   </div>
                   <div className="workforce-marquee-item">
                     <span className="workforce-marquee-badge training-marquee-badge">200+ Programs</span>
-                    <span>We offer 200+ specialized training programs across the automotive and process industries.</span>
+                    <span>We have successfully delivered 200+ specialized training programs across the automotive and process industries.</span>
                     <span className="workforce-marquee-star training-marquee-star">✦</span>
                   </div>
                 </div>
                 <div className="workforce-marquee-content" aria-hidden="true">
                   <div className="workforce-marquee-item">
                     <span className="workforce-marquee-badge training-marquee-badge">200+ Programs</span>
-                    <span>We offer 200+ specialized training programs across the automotive and process industries.</span>
+                    <span>We have successfully delivered 200+ specialized training programs across the automotive and process industries.</span>
                     <span className="workforce-marquee-star training-marquee-star">✦</span>
                   </div>
                   <div className="workforce-marquee-item">
                     <span className="workforce-marquee-badge training-marquee-badge">200+ Programs</span>
-                    <span>We offer 200+ specialized training programs across the automotive and process industries.</span>
+                    <span>We have successfully delivered 200+ specialized training programs across the automotive and process industries.</span>
                     <span className="workforce-marquee-star training-marquee-star">✦</span>
                   </div>
                 </div>
